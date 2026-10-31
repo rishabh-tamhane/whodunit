@@ -174,6 +174,175 @@ select is(
   'MURDERER',
   'an aware murderer sees their own faction while another player never does'
 );
+select is(
+  pg_catalog.jsonb_array_length(
+    public.get_actor_view('b2000000-0000-4000-8000-000000000001') -> 'missions'
+  ),
+  0,
+  'the actor API does not reveal future missions before play starts'
+);
+
+select lives_ok(
+  $$select public.save_player_notebook(
+    'b2000000-0000-4000-8000-000000000001', 0,
+    'My owner-only notes', '[]'::jsonb
+  )$$,
+  'an active player creates an owner-only notebook'
+);
+select is(
+  public.save_player_notebook(
+    'b2000000-0000-4000-8000-000000000001', 0,
+    'My revised owner-only notes', '[]'::jsonb
+  ) ->> 'revision',
+  '1',
+  'notebook autosave increments its optimistic revision'
+);
+select throws_ok(
+  $$select public.save_player_notebook(
+    'b2000000-0000-4000-8000-000000000001', 0,
+    'Stale overwrite', '[]'::jsonb
+  )$$,
+  '40001', 'stale notebook revision',
+  'a stale notebook write cannot overwrite a newer revision'
+);
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
+);
+create temporary table game_started as
+select public.start_game(
+  'b2000000-0000-4000-8000-000000000001',
+  (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+  'bb000000-0000-4000-8000-000000000001'
+) as result;
+select is((select result ->> 'status' from game_started),'IN_PROGRESS','the Game Master starts active play manually');
+select is(
+  public.start_game(
+    'b2000000-0000-4000-8000-000000000001', 0,
+    'bb000000-0000-4000-8000-000000000001'
+  ) ->> 'replayed',
+  'true',
+  'a duplicate command receipt replays without a second mutation'
+);
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000002","role":"authenticated"}',
+  true
+);
+select is(
+  pg_catalog.jsonb_array_length(
+    public.get_actor_view('b2000000-0000-4000-8000-000000000001') -> 'missions'
+  ),
+  1,
+  'the actor API reveals only the current-round player mission'
+);
+select throws_ok(
+  pg_catalog.format(
+    'select public.player_mission_command(%L,%L,%s,%L,%L)',
+    'b2000000-0000-4000-8000-000000000001',
+    'ba000000-0000-4000-8000-000000000005',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000099',
+    'ACCEPT'
+  ),
+  'P0002',
+  'query returned no rows',
+  'a player cannot bypass the projection to accept a future-round mission'
+);
+select is(
+  public.player_mission_command(
+    'b2000000-0000-4000-8000-000000000001',
+    'ba000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000002','ACCEPT'
+  ) ->> 'status',
+  'ACCEPTED',
+  'only the assigned active player accepts their mission'
+);
+select is(
+  public.player_mission_command(
+    'b2000000-0000-4000-8000-000000000001',
+    'ba000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000003','REQUEST_COMPLETION'
+  ) ->> 'status',
+  'COMPLETION_REQUESTED',
+  'the assigned player requests observable completion'
+);
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
+);
+select is(
+  public.adjudicate_mission(
+    'b2000000-0000-4000-8000-000000000001',
+    'ba000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000004','APPROVE',null
+  ) ->> 'status',
+  'COMPLETED',
+  'only the Game Master adjudicates mission completion'
+);
+select lives_ok(
+  pg_catalog.format(
+    'select public.advance_round(%L,%s,%L)',
+    'b2000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000005'
+  ),
+  'manual advance waives unfinished round missions without blocking play'
+);
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000002","role":"authenticated"}',
+  true
+);
+select is(
+  public.submit_player_theory(
+    'b2000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000006',
+    '{"suspects":[],"evidenceIds":[]}'::jsonb,
+    'A submitted theory with no correctness response.'
+  ) ->> 'correctness',
+  null,
+  'theory submission never returns a correctness signal'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
+);
+select ok(
+  public.get_game_master_view('b2000000-0000-4000-8000-000000000001')::text
+    not like '%My revised owner-only notes%',
+  'the Game Master projection cannot read notebook text'
+);
+
+select is(
+  public.advance_round(
+    'b2000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000007'
+  ) ->> 'status',
+  'FINAL_ACCUSATIONS',
+  'advancing the final round opens final accusations without a timer'
+);
+select ok(
+  not exists (
+    select 1 from app_private.game_events
+    where room_id='b2000000-0000-4000-8000-000000000001'
+      and (public_metadata_json::text like '%owner-only%' or private_payload_json::text like '%owner-only%')
+  ),
+  'append-only gameplay events contain no notebook or submitted prose'
+);
+
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select throws_ok(
   pg_catalog.format(

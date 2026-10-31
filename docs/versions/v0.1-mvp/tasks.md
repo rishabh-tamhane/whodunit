@@ -666,14 +666,14 @@ only by authorized projections. The Game Master sees the full locked game;
 players see only their own dossiers, released evidence, and authorized faction
 knowledge. Draft privacy survives refresh and device replacement.
 
-- [ ] **APP-01 — Build actor-aware route shells**
+- [x] **APP-01 — Build actor-aware route shells**
   - **Depends on:** IDN-01, GEN-08, UX-01.
   - **Deliverable:** Session-aware Game Master, player, visitor, pending, and
     reveal shells with server-side route guards and dynamic rendering.
   - **Done when:** Deep links, back navigation, expired sessions, former-host
     sessions, and wrong-room actors fail closed without flashing private data.
 
-- [ ] **APP-02 — Implement versioned state synchronization**
+- [x] **APP-02 — Implement versioned state synchronization**
   - **Depends on:** FND-07, DB-11.
   - **Deliverable:** Projection fetch layer, state-version tracking,
     content-free Realtime invalidation, focus/refetch, reconnect refetch, and
@@ -681,7 +681,7 @@ knowledge. Draft privacy survives refresh and device replacement.
   - **Done when:** Missed or duplicated signals do not affect correctness and a
     stale client converges to authorized server state.
 
-- [ ] **GM-01 — Build the full Game Master dashboard**
+- [x] **GM-01 — Build the full Game Master dashboard**
   - **Depends on:** APP-01, APP-02, GEN-08.
   - **Deliverable:** Complete solution, all factions/dossiers/secrets/missions,
     released and unreleased evidence, interventions, submitted theories and
@@ -690,7 +690,7 @@ knowledge. Draft privacy survives refresh and device replacement.
     raw descriptions/authorship, security credentials, notebooks, unsubmitted
     theory prose, and accusation drafts never appear.
 
-- [ ] **PLY-01 — Build the player gameplay shell and dossier**
+- [x] **PLY-01 — Build the player gameplay shell and dossier**
   - **Depends on:** APP-01, APP-02, GEN-08.
   - **Deliverable:** Private character dossier, secrets, authorized faction
     knowledge, active round, missions, evidence, notebook, theory, and final
@@ -700,14 +700,14 @@ knowledge. Draft privacy survives refresh and device replacement.
     murderer modes, the current objective remains one action away on a narrow
     phone, and refresh does not expose another actor's cached content.
 
-- [ ] **PLY-02 — Build the evidence board**
+- [x] **PLY-02 — Build the evidence board**
   - **Depends on:** PLY-01.
   - **Deliverable:** Public, faction-scoped, and player-private evidence views
     with source, release round, chronology, and new-item state.
   - **Done when:** Audience rules are honored, unreleased evidence never
     renders, and duplicate release signals do not duplicate cards.
 
-- [ ] **PLY-03 — Implement private notebook persistence**
+- [x] **PLY-03 — Implement private notebook persistence**
   - **Depends on:** DB-07, DB-11, IDN-08.
   - **Deliverable:** Revisioned owner-only notes, suspect selections, autosave,
     size limits, optimistic concurrency, and recovery through the same
@@ -716,14 +716,14 @@ knowledge. Draft privacy survives refresh and device replacement.
     revision; the Game Master, other players, model contexts, case file, logs,
     and analytics cannot read notebook drafts.
 
-- [ ] **PLY-04 — Build the Detective Notebook UI**
+- [x] **PLY-04 — Build the Detective Notebook UI**
   - **Depends on:** PLY-01, PLY-03, UI-01.
   - **Deliverable:** Notes editor, suspects, evidence references, save state,
     offline/stale warning, conflict recovery, and explicit submit-theory action.
   - **Done when:** Autosave is understandable on mobile, a failed save cannot
     masquerade as success, and draft versus submitted visibility is explicit.
 
-- [ ] **PLY-05 — Implement submitted theory snapshots**
+- [x] **PLY-05 — Implement submitted theory snapshots**
   - **Depends on:** PLY-03, GEN-08, GAM-01.
   - **Deliverable:** Structured evidence/suspect selection, optional submitted
     prose snapshot, immutable submission records, Game Master projection, and
@@ -734,7 +734,7 @@ knowledge. Draft privacy survives refresh and device replacement.
     event, state-version increment, content-free signal, and persisted-before-
     notify ordering.
 
-- [ ] **PLY-06 — Build theory-submission UI**
+- [x] **PLY-06 — Build theory-submission UI**
   - **Depends on:** PLY-04, PLY-05.
   - **Deliverable:** Review, visibility disclosure, immutable-submit
     confirmation, submitted history, and no-correctness response state.
@@ -750,7 +750,7 @@ attempt achievable missions; the Game Master can adjudicate outcomes and
 release canonical evidence/consequences exactly once. No timer or AI changes
 state without an authorized Game Master command.
 
-- [ ] **GAM-01 — Implement the command kernel**
+- [x] **GAM-01 — Implement the command kernel**
   - **Depends on:** DB-05, DB-06, DB-11, GEN-07, IDN-10.
   - **Deliverable:** Shared transaction wrapper with idempotency receipt,
     expected state version, room lock, in-transaction authority recheck, state
@@ -759,7 +759,7 @@ state without an authorized Game Master command.
     conflict, concurrent commands have one winner, and recovery-first rejects
     an old-host command without mutation.
 
-- [ ] **GAM-02 — Implement the room and round state machine**
+- [x] **GAM-02 — Implement the room and round state machine**
   - **Depends on:** GAM-01, DB-12.
   - **Deliverable:** Start game, manual round advance, guaranteed release
     processing, unfinished-mission classification, delayed accomplice reveal,
@@ -769,7 +769,7 @@ state without an authorized Game Master command.
     never auto-confirm identity, and every release/revelation occurs at most
     once without changing canonical truth.
 
-- [ ] **GAM-03 — Implement mission lifecycle commands**
+- [x] **GAM-03 — Implement mission lifecycle commands**
   - **Depends on:** GAM-02.
   - **Deliverable:** Player acceptance, completion request, and Game Master
     accept/reject/extend/waive/fail commands with state projections.
@@ -777,7 +777,7 @@ state without an authorized Game Master command.
     completion, only the Game Master adjudicates, and every state transition is
     validated and idempotent.
 
-- [ ] **GAM-04 — Implement evidence and consequence releases**
+- [x] **GAM-04 — Implement evidence and consequence releases**
   - **Depends on:** GAM-03.
   - **Deliverable:** Consequence eligibility, Game Master waiver of a pending
     consequence, standalone eligible-evidence release, prerequisite/audience
@@ -786,7 +786,7 @@ state without an authorized Game Master command.
     fail and mission failure cannot make critical evidence permanently
     unavailable.
 
-- [ ] **GAM-05 — Implement the append-only gameplay event log**
+- [x] **GAM-05 — Implement the append-only gameplay event log**
   - **Depends on:** GAM-01.
   - **Deliverable:** Sanitized event types for commands, releases, claims,
     mission outcomes, interventions, theory/accusation submission, reveal, and
@@ -794,7 +794,7 @@ state without an authorized Game Master command.
   - **Done when:** Events reconstruct public/runtime history without containing
     raw descriptions, private drafts, credentials, or unauthorized story text.
 
-- [ ] **GM-02 — Build runtime Game Master controls**
+- [x] **GM-02 — Build runtime Game Master controls**
   - **Depends on:** GM-01, GAM-02, GAM-03, GAM-04.
   - **Deliverable:** Start, round advance, mission adjudication, evidence and
     consequence release or waiver, accomplice timing, informational target
@@ -803,7 +803,7 @@ state without an authorized Game Master command.
     require confirmation, stale commands refetch, and no control can edit
     canonical truth.
 
-- [ ] **PLY-07 — Build mission and consequence UI**
+- [x] **PLY-07 — Build mission and consequence UI**
   - **Depends on:** PLY-01, GAM-03, GAM-04.
   - **Deliverable:** Mission availability, success criteria, stakes and possible
     fictional failure consequence shown before acceptance, completion request,
@@ -820,7 +820,7 @@ state without an authorized Game Master command.
   - **Done when:** Replacement loses no player-keyed progress, revoked devices
     cannot fetch, and stale cached data is cleared.
 
-- [ ] **GAM-07 — Build connection and stale-state UI**
+- [x] **GAM-07 — Build connection and stale-state UI**
   - **Depends on:** APP-02, IDN-15, GM-02, PLY-07.
   - **Deliverable:** Online/disconnected indicators, reconnect banner, delayed
     update warning, stale-version recovery, and safe retry behavior.

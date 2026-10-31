@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 
 import {
@@ -34,6 +35,7 @@ function message(error: unknown) {
 }
 
 export function JoinRoomFlow({ initialCode = "" }: { initialCode?: string }) {
+  const router = useRouter();
   const [code, setCode] = useState(initialCode.toUpperCase());
   const [lobby, setLobby] = useState<z.infer<typeof SafeLobbySchema>>();
   const [view, setView] = useState<z.infer<typeof OnboardingViewSchema>>();
@@ -98,6 +100,12 @@ export function JoinRoomFlow({ initialCode = "" }: { initialCode?: string }) {
     const interval = window.setInterval(heartbeat, 30_000);
     return () => window.clearInterval(interval);
   }, [lobby, view?.actor]);
+
+  useEffect(() => {
+    if (lobby && view?.actor === "PLAYER" && view.room.status !== "LOBBY") {
+      router.replace(`/room/${lobby.roomId}`);
+    }
+  }, [lobby, router, view]);
 
   const completedSubjects = useMemo(
     () =>

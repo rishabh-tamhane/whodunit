@@ -7,6 +7,7 @@ export * from "@/contracts/domain/limits";
 export * from "@/contracts/domain/membership";
 export * from "@/contracts/domain/mission";
 export * from "@/contracts/generation";
+export * from "@/contracts/gameplay";
 export * from "@/contracts/onboarding";
 export * from "@/contracts/story/version";
 export * from "@/contracts/story/canonical";

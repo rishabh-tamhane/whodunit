@@ -352,12 +352,14 @@ export function MissionCard({
   status,
   title,
   objective,
+  successCriteria,
   stakes,
   action,
 }: {
   status: string;
   title: string;
   objective: string;
+  successCriteria?: string;
   stakes: string;
   action?: ReactNode;
 }) {
@@ -373,6 +375,11 @@ export function MissionCard({
         </span>
       </div>
       <p className="mt-3 text-sm leading-6 text-stone-200">{objective}</p>
+      {successCriteria ? (
+        <p className="mt-3 text-xs leading-5 text-stone-300">
+          <strong>Success:</strong> {successCriteria}
+        </p>
+      ) : null}
       <p className="mt-3 border-l-2 border-orange-300/40 pl-3 text-xs leading-5 text-stone-400">
         {stakes}
       </p>
