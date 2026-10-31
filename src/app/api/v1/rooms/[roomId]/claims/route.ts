@@ -22,7 +22,7 @@ export async function POST(
   const parsed = await parseJsonBody(request, RequestClaimInputSchema);
   if (!parsed.success) return parsed.response;
   const supabase = await createSupabaseServerClient();
-  const authorization = await requireUser(request, supabase);
+  const authorization = await requireUser(request, supabase, "PLAYER_CLAIM");
   if (!authorization.success) return authorization.response;
 
   const { data, error } = await supabase.rpc("request_player_claim", {

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const parsed = await parseJsonBody(request, RecoverHostInputSchema);
   if (!parsed.success) return parsed.response;
   const supabase = await createSupabaseServerClient();
-  const authorization = await requireUser(request, supabase);
+  const authorization = await requireUser(request, supabase, "HOST_RECOVERY");
   if (!authorization.success) return authorization.response;
   const replacement = createRecoveryCredential();
   const { data, error } = await supabase.rpc("recover_game_master", {

@@ -19,6 +19,11 @@ player-authored content.
 - `/api/internal/cron/maintenance` runs every ten minutes with Vercel's
   `CRON_SECRET`. It reconciles at most ten stale generation jobs, purges due
   generation inputs, and deletes at most 25 expired rooms per execution.
+- The application enforces durable one-minute IP, principal, and room budgets.
+  Discovery, claim, and recovery denials include
+  `X-Whodunit-Abuse-Action: turnstile-challenge`; the production Cloudflare
+  rule uses that route class and denial threshold to escalate sustained abuse.
+  Normal clients must not send or depend on this response header.
 
 ## Privacy-safe observability
 
@@ -150,7 +155,8 @@ is not coupled to application rollback.
 - Configure Cloudflare DNS/TLS and the application domain.
 - Register the final HTTPS OpenAI webhook URL and store its signing secret.
 - Configure Cloudflare Turnstile/challenge escalation for sustained abusive
-  join/recovery traffic and verify the rate-limit response path.
+  join/claim/recovery traffic, matching the application's 429 escalation
+  signal, and verify both an ordinary retry and a challenged abusive path.
 - Require the GitHub checks `Application checks` and `Database smoke`.
 - Run staging recovery, rotation, cleanup, webhook, provider-outage, and
   deployment-rollback drills; attach evidence to the release checklist.

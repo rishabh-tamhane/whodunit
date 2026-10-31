@@ -23,7 +23,7 @@ export async function POST(
   const parsed = await parseJsonBody(request, RoomCommandInputSchema);
   if (!parsed.success) return parsed.response;
   const supabase = await createSupabaseServerClient();
-  const authorization = await requireUser(request, supabase);
+  const authorization = await requireUser(request, supabase, "GAME_COMMAND");
   if (!authorization.success) return authorization.response;
   const { data, error } = await supabase.rpc(
     params.command === "start" ? "start_game" : "advance_round",

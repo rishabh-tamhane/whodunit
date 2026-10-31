@@ -1014,7 +1014,7 @@ Abuse controls, privacy boundaries, cleanup, recovery, observability, and
 deployment operations work under concurrency and failure. Operators can detect
 problems without logging story secrets or player-authored private content.
 
-- [ ] **SEC-01 — Add abuse and enumeration controls**
+- [x] **SEC-01 — Add abuse and enumeration controls**
   - **Depends on:** IDN-02, IDN-06, IDN-10, GEN-05, GAM-01.
   - **Deliverable:** Per-IP/principal/room rate limits, uniform lookup errors,
     Turnstile escalation on abusive paths, request-size limits, and replay

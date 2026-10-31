@@ -31,7 +31,11 @@ export async function POST(
   const parsed = await parseJsonBody(request, StartGenerationInputSchema);
   if (!parsed.success) return parsed.response;
   const supabase = await createSupabaseServerClient();
-  const authorization = await requireUser(request, supabase);
+  const authorization = await requireUser(
+    request,
+    supabase,
+    "STORY_GENERATION",
+  );
   if (!authorization.success) return authorization.response;
   const models = getModelPolicy();
   const { data, error } = await supabase.rpc("start_story_generation", {

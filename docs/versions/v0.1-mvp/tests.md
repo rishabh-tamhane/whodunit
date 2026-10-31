@@ -43,6 +43,15 @@ The canonical local gates are `npm run check` and
 `CI=true npm run db:verify`. CI runs the equivalent `Application checks` and
 `Database smoke` jobs on a clean worker.
 
+The HTTP integration suite sends sustained requests through the real Next.js
+server for room discovery, player claims, host recovery, story generation, and
+game commands. It verifies route-specific per-IP, principal, and room budgets;
+the same public response for missing versus unavailable room codes and for used
+versus unknown recovery credentials; a non-enumerating 429 envelope; and the
+`X-Whodunit-Abuse-Action: turnstile-challenge` escalation signal on abusive
+join, claim, and recovery traffic. Database and command suites separately prove
+durable replay protection, while unit tests enforce the 64 KiB JSON boundary.
+
 ## 3. Environments and data policy
 
 | Environment | Use | Credentials and data |

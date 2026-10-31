@@ -11,6 +11,53 @@ import { recordOperationalEvent } from "@/modules/operations/telemetry.server";
 const MAX_JSON_BODY_BYTES = 64 * 1024;
 const requestCorrelationIds = new WeakMap<Request, string>();
 
+export type RateLimitClass =
+  | "DEFAULT"
+  | "ROOM_DISCOVERY"
+  | "PLAYER_CLAIM"
+  | "HOST_RECOVERY"
+  | "STORY_GENERATION"
+  | "GAME_COMMAND";
+
+type RateLimitPolicy = Readonly<{
+  ip: number;
+  principal: number;
+  room?: number;
+  challengeOnDenial: boolean;
+}>;
+
+const RATE_LIMIT_POLICIES: Record<RateLimitClass, RateLimitPolicy> = {
+  DEFAULT: { ip: 90, principal: 120, room: 180, challengeOnDenial: false },
+  ROOM_DISCOVERY: {
+    ip: 30,
+    principal: 45,
+    challengeOnDenial: true,
+  },
+  PLAYER_CLAIM: {
+    ip: 30,
+    principal: 30,
+    room: 90,
+    challengeOnDenial: true,
+  },
+  HOST_RECOVERY: {
+    ip: 12,
+    principal: 15,
+    challengeOnDenial: true,
+  },
+  STORY_GENERATION: {
+    ip: 12,
+    principal: 12,
+    room: 6,
+    challengeOnDenial: false,
+  },
+  GAME_COMMAND: {
+    ip: 60,
+    principal: 80,
+    room: 120,
+    challengeOnDenial: false,
+  },
+};
+
 export function getRequestCorrelationId(request: Request): string {
   const existing = requestCorrelationIds.get(request);
   if (existing) return existing;
@@ -87,7 +134,11 @@ async function consumeBudget(
   };
 }
 
-function rateLimitResponse(request: Request, retryAfterSeconds: number) {
+function rateLimitResponse(
+  request: Request,
+  retryAfterSeconds: number,
+  challengeOnDenial: boolean,
+) {
   const response = apiError(
     request,
     429,
@@ -95,6 +146,9 @@ function rateLimitResponse(request: Request, retryAfterSeconds: number) {
     "Too many requests. Wait briefly and try again.",
   );
   response.headers.set("Retry-After", String(retryAfterSeconds));
+  if (challengeOnDenial) {
+    response.headers.set("X-Whodunit-Abuse-Action", "turnstile-challenge");
+  }
   return response;
 }
 
@@ -218,6 +272,7 @@ export async function parseJsonBody<T>(
 export async function requireUser(
   request: Request,
   supabase: SupabaseClient,
+  rateLimitClass: RateLimitClass = "DEFAULT",
 ): Promise<
   { success: true; user: User } | { success: false; response: NextResponse }
 > {
@@ -256,11 +311,16 @@ export async function requireUser(
   }
   const route = normalizedRoute(request);
   const pathRoomId = requestRoomId(request);
+  const policy = RATE_LIMIT_POLICIES[rateLimitClass];
   const budgets = await Promise.all([
-    consumeBudget("IP_ROUTE", `${requestIp(request)}|${route}`, 90),
-    consumeBudget("PRINCIPAL_ROUTE", `${data.user.id}|${route}`, 120),
-    ...(pathRoomId
-      ? [consumeBudget("ROOM", `${pathRoomId}|${route}`, 180)]
+    consumeBudget("IP_ROUTE", `${requestIp(request)}|${route}`, policy.ip),
+    consumeBudget(
+      "PRINCIPAL_ROUTE",
+      `${data.user.id}|${route}`,
+      policy.principal,
+    ),
+    ...(pathRoomId && policy.room
+      ? [consumeBudget("ROOM", `${pathRoomId}|${route}`, policy.room)]
       : []),
   ]);
   if (budgets.some((budget) => budget === undefined)) {
@@ -298,7 +358,11 @@ export async function requireUser(
     });
     return {
       success: false,
-      response: rateLimitResponse(request, denied.retryAfterSeconds),
+      response: rateLimitResponse(
+        request,
+        denied.retryAfterSeconds,
+        policy.challengeOnDenial,
+      ),
     };
   }
   return { success: true, user: data.user };

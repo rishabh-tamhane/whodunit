@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const parsed = await parseJsonBody(request, LookupInputSchema);
   if (!parsed.success) return parsed.response;
   const supabase = await createSupabaseServerClient();
-  const authorization = await requireUser(request, supabase);
+  const authorization = await requireUser(request, supabase, "ROOM_DISCOVERY");
   if (!authorization.success) return authorization.response;
 
   const { data, error } = await supabase.rpc("lookup_room_lobby", {
