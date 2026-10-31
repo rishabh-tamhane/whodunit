@@ -90,4 +90,20 @@ describe("mobile UI primitives", () => {
     expect(html).toContain("Active");
     expect(html).not.toContain("dangerouslySetInnerHTML");
   });
+
+  it("escapes generated and player-authored text instead of interpreting markup", () => {
+    const attack = '<img src=x onerror="alert(1)"><script>alert(2)</script>';
+    const html = renderToStaticMarkup(
+      <PlayerCard
+        name={attack}
+        costume={attack}
+        status="Connected"
+        statusTone="success"
+      />,
+    );
+
+    expect(html).toContain("&lt;script&gt;alert(2)&lt;/script&gt;");
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("<img src=x");
+  });
 });

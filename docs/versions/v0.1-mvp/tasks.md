@@ -1213,7 +1213,7 @@ and production smoke tests are complete.
   - **Done when:** No critical accessibility defect remains and the agreed
     device/browser matrix passes.
 
-- [ ] **QA-09 — Run security and privacy verification**
+- [x] **QA-09 — Run security and privacy verification**
   - **Depends on:** SEC-01 through SEC-04, REL-05, REL-06.
   - **Deliverable:** Enumeration, authorization, CSRF, CSP/XSS, input abuse,
     log-redaction, webhook replay, recovery-secret, cache, retention, and

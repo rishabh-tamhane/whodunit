@@ -199,7 +199,30 @@ reduced motion, form naming, and narrow Unicode layout; and complements the
 Physical Safari/Chrome/Edge devices, 200% browser zoom, and VoiceOver/TalkBack
 remain human release evidence in `accessibility-device-checklist.md`.
 
-## 10. Defect severity and release policy
+## 10. Security and privacy release evidence
+
+`CI=true npm run test:security` is the reproducible security release gate. It
+runs the committed-secret scanner; focused origin/CSRF, request-size,
+correlation-ID, webhook-signature/replay, and log-redaction unit suites; then
+the clean-worker database, real HTTP, and browser gates.
+
+| Risk | Required automated evidence |
+|---|---|
+| Enumeration and abuse | Uniform lookup/recovery errors and route-specific room-code, claim, recovery, generation, and command throttling in `abuse-controls.test.ts` |
+| Authorization and actor privacy | RLS/RPC deny cases, former-host/replaced-device rejection, projection snapshots, and isolated actor contexts |
+| CSRF, cache, CSP/XSS, and input abuse | Same-origin mutation checks, private no-store headers, production CSP/header assertions, escaped React rendering, schema limits, and 64 KiB body rejection |
+| Provider/webhook replay | Signature/timestamp verification, durable unique receipt, order/replay tests, and sanitized provider failures |
+| Recovery credentials | Fragment removal, one-time rotation, old-principal denial, and denylisted logging/projection fields |
+| Logs and analytics | Application/database metadata allowlists plus committed-secret and forbidden-field scans |
+| Retention and deletion | Exact 30-day deadline, bounded cleanup, cascaded room-artifact deletion, active-room control, and only hashed deletion audit residue |
+
+This gate passed on the QA-09 implementation commit with 77 unit tests, 675
+database assertions, 11 HTTP integration tests, and 8 production-server browser
+tests. Production infrastructure penetration review and ongoing monitoring are
+separate OPS/LAUNCH responsibilities; they do not replace this application
+privacy gate.
+
+## 11. Defect severity and release policy
 
 | Severity | Examples | Policy |
 |---|---|---|
@@ -212,7 +235,7 @@ Any flaky release-blocking check is a failure, not a pass. Quarantine requires
 a named owner, root-cause task, expiry within seven days, and equivalent manual
 evidence until repaired.
 
-## 11. Release evidence checklist
+## 12. Release evidence checklist
 
 - `npm run check` and `CI=true npm run db:verify` exit 0 at the release commit.
 - QA-02 through QA-10 evidence is linked from the release checklist.
@@ -225,7 +248,7 @@ evidence until repaired.
 - A synthetic production smoke reaches create → claim → generation → gameplay
   → fallback → reveal while rollback remains available.
 
-## 12. Automated multi-actor journey evidence
+## 13. Automated multi-actor journey evidence
 
 `tests/e2e/multi-actor-journeys.spec.ts` runs two production-server journeys
 through public HTTP and browser surfaces only:
