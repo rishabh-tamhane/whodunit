@@ -102,7 +102,7 @@ or technical design. No dependent task relies on an undocumented assumption.
   - **Done when:** The baseline is versioned in Git and all confirmed decisions
     agree across both documents.
 
-- [ ] **M0-02 — Finalize the description-completeness rule**
+- [x] **M0-02 — Finalize the description-completeness rule**
   - **Depends on:** M0-01.
   - **Deliverable:** Define the required all-other-player description matrix,
     how decline/skip exceptions work without removing the prompt for every
@@ -111,7 +111,7 @@ or technical design. No dependent task relies on an undocumented assumption.
     documented with 4-player and 12-player examples.
   - **Blocks:** IDN-13, GEN-03.
 
-- [ ] **M0-03 — Finalize claim and replacement state rules**
+- [x] **M0-03 — Finalize claim and replacement state rules**
   - **Depends on:** M0-01.
   - **Deliverable:** Allowed room states for initial claims, host rejection,
     active-membership revocation, reconnect requests, and device replacement.
@@ -138,7 +138,7 @@ or technical design. No dependent task relies on an undocumented assumption.
     cases are documented.
   - **Blocks:** END-02, END-04.
 
-- [ ] **M0-06 — Finalize incomplete-room retention**
+- [x] **M0-06 — Finalize incomplete-room retention**
   - **Depends on:** M0-01.
   - **Deliverable:** Retention and recovery policy for DRAFT, LOBBY,
     GENERATING, READY_TO_START, IN_PROGRESS, FINAL_ACCUSATIONS, and REVEAL.
@@ -147,7 +147,7 @@ or technical design. No dependent task relies on an undocumented assumption.
     deletion behavior, and user warning.
   - **Blocks:** REL-06.
 
-- [ ] **M0-07 — Choose the MVP language policy**
+- [x] **M0-07 — Choose the MVP language policy**
   - **Depends on:** M0-01.
   - **Deliverable:** Record English-only or English plus an optional Hindi copy
     layer while retaining Unicode-safe names and culturally inclusive Indian
@@ -156,7 +156,7 @@ or technical design. No dependent task relies on an undocumented assumption.
     localization ownership are documented.
   - **Blocks:** UX-02, QA-08.
 
-- [ ] **M0-08 — Set release and operating targets**
+- [x] **M0-08 — Set release and operating targets**
   - **Depends on:** M0-01.
   - **Deliverable:** Supported mobile browsers, minimum viewport, target
     Supabase/Vercel region, generation and intervention latency budgets,
@@ -165,7 +165,7 @@ or technical design. No dependent task relies on an undocumented assumption.
     gate.
   - **Blocks:** FND-08, INT-04, OPS-03, QA-07.
 
-- [ ] **M0-09 — Create requirement-to-task traceability**
+- [x] **M0-09 — Create requirement-to-task traceability**
   - **Depends on:** M0-02 through M0-08.
   - **Deliverable:** Map every committed requirement to one or more task and
     verification IDs.

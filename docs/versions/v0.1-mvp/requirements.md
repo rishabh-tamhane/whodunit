@@ -107,7 +107,9 @@ After approval, each player privately describes the other players.
 
 Descriptions are stored only for story generation. Their raw text and authorship are never shown to the Game Master or other players and are never copied into generated output.
 
-Once every player claim is approved and everyone has submitted their required information, the host generates the mystery.
+Every ordered author/other-player prompt must be answered with 1–500 characters or an explicit “Prefer not to answer” decline. A decline stores no reason. Unanswered prompts remain pending and block generation, so a 4-player room requires 12 terminal responses and a 12-player room requires 132. The Game Master sees completion counts only.
+
+Once every player has one active approved claim, all acknowledgements and room consent are complete, and every description prompt is submitted or declined, the host can generate the mystery.
 
 ---
 
@@ -376,6 +378,8 @@ The canonical explanation is created before gameplay. The final presentation inc
 
 A completed room, including its generated story, event history, accusations, results, and case file, remains available for 30 days after completion. The room and all room-scoped data are then deleted.
 
+Incomplete rooms expire after inactivity: DRAFT and LOBBY after 7 days; READY_TO_START, IN_PROGRESS, FINAL_ACCUSATIONS, and REVEAL after 30 days. A stale GENERATING job is recovered or failed safely back to LOBBY rather than deleted mid-job. Only successful authenticated mutations reset inactivity; page views and heartbeats do not. The product warns authorized users before deletion.
+
 ---
 
 ## 12. Website Screens
@@ -437,6 +441,8 @@ A completed room, including its generated story, event history, accusations, res
 - Support for branching information releases without changing the historical truth.
 - Context-aware live interventions constrained to eligible canonical content, with validation, host approval, and deterministic fallback.
 - Automatic deletion of completed room data 30 days after completion.
+- English-only MVP interface and generated fiction with Unicode-safe names and culturally inclusive Indian contexts.
+- Initial deployment in Mumbai: Supabase `ap-south-1` and Vercel Functions `bom1`.
 
 ---
 

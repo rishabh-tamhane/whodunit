@@ -1485,10 +1485,11 @@ The host case file contains every submitted theory snapshot—structured selecti
 
 - Raw friend descriptions and host-provided background notes are purged after successful story lock because regeneration is forbidden and the generated package is sufficient for gameplay. The durable `sensitive_input_purge_pending` sweeper guarantees retry after a post-lock interruption.
 - Per-attempt snapshots, provider response artifacts, and invalid generated output are purged within 24 hours after a generation job becomes terminal. Source player descriptions remain while an unlocked room is still eligible for retry, then are removed on successful lock or room deletion.
-- Draft/lobby rooms inactive for seven days are eligible for cleanup. This is an MVP operational assumption.
-- A stale GENERATING job is reconciled from its durable checkpoint; if its bounded recovery is exhausted, the room returns to LOBBY and follows the lobby policy rather than remaining stuck indefinitely.
-- Until the incomplete-room policy is finalized, READY_TO_START, IN_PROGRESS, FINAL_ACCUSATIONS, and REVEAL rooms are not automatically deleted. Operations flags them after prolonged inactivity; sensitive source descriptions have already been purged after lock.
+- DRAFT and LOBBY rooms inactive for seven days are deleted after a day-six warning.
+- A GENERATING job without a heartbeat for 15 minutes is reconciled from its durable checkpoint; if bounded recovery is exhausted, the job fails safely and the room returns to LOBBY. An actively generating room is never deleted.
+- READY_TO_START, IN_PROGRESS, FINAL_ACCUSATIONS, and REVEAL rooms inactive for 30 days are deleted after warnings at 27 and 29 days. Their locked story can be resumed until deletion.
 - Completed rooms and their case files expire 30 days after completed_at.
+- Only successful authenticated mutations advance `last_activity_at`; reads, presence heartbeats, and failed requests do not reset retention.
 - Expiration removes room-scoped rows, recovery tokens, generated content, events, and corresponding anonymous memberships.
 - Anonymous auth users are eligible for scheduled cleanup only when they have no PENDING or ACTIVE player membership and are not referenced by any room's `host_auth_user_id` or `room_host_principals` history.
 
@@ -1830,13 +1831,9 @@ A model upgrade does not ship based only on anecdotal output quality.
 | Host loses device | Game becomes unmanageable | Separate recovery secret and rotation |
 | Provider outage | Generation/intervention unavailable | Pre-lock retry; in-game prepared fallback |
 
-## 29. Remaining Implementation-Time Product Decisions
+## 29. Product Decision Register
 
-These do not block the architecture, but should be finalized before their features are implemented:
-
-1. Exact point weights for scoring and awards.
-2. Retention for every non-completed room state. This design proposes seven inactive days for DRAFT/LOBBY, durable recovery then LOBBY for stuck GENERATING, and no automatic deletion of locked incomplete rooms until this policy is finalized.
-3. Whether the MVP UI is English-only or includes an optional Hindi copy layer. Unicode names and content are supported either way.
+The description matrix, claim/replacement transitions, score profile, non-submitter behavior, incomplete-room retention, English-only language policy, and release operating targets are finalized in [product-decisions.md](./product-decisions.md). A behavior that changes those contracts requires a reviewed document and migration update rather than an implementation-local assumption.
 
 ## 30. Official Platform References
 
