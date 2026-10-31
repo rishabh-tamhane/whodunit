@@ -128,7 +128,18 @@ select pg_catalog.jsonb_build_object(
   'evidence','[]'::jsonb,'evidenceDependencies','[]'::jsonb,
   'consequences',(select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('id',id,'severity',severity,'title','Complication','description','Harmless fictional complication','fictionalOnly',true,'eligibility',pg_catalog.jsonb_build_object('roundIds',pg_catalog.jsonb_build_array('b5000000-0000-4000-8000-000000000001'),'afterFailedMission',true))) from consequence_data),
   'missions',(select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('id',('ba000000-0000-4000-8000-'||pg_catalog.lpad(((rounds.sequence-1)*4+players.n)::text,12,'0'))::uuid,'roundId',rounds.id,'assignedPlayerId',players.id,'actionKind','ASK_PLAYER','objective','Ask a fictional question','completionRule','Ask it aloud','stakes','A fictional clue','hostConfirmationGuidance','Confirm it was asked','successEffect',null,'failureConsequenceId',null)) from room_players as players cross join round_data as rounds),
-  'interventions','[]'::jsonb,'accompliceRevelations','[]'::jsonb,'finalReveal','[]'::jsonb
+  'interventions',pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+    'id','bc000000-0000-4000-8000-000000000001',
+    'roundId','b5000000-0000-4000-8000-000000000002',
+    'strength',1,
+    'candidateKind','DIRECTED_QUESTION',
+    'canonicalEffect',pg_catalog.jsonb_build_object(
+      'kind','ASK_QUESTION','question','Which public alibi needs another comparison?'
+    ),
+    'presentation','Ask the group which public alibi needs another comparison.',
+    'eligibleAfterSeconds',0
+  )),
+  'accompliceRevelations','[]'::jsonb,'finalReveal','[]'::jsonb
 ) as package;
 
 select lives_ok(
@@ -323,6 +334,65 @@ select ok(
   public.get_game_master_view('b2000000-0000-4000-8000-000000000001')::text
     not like '%My revised owner-only notes%',
   'the Game Master projection cannot read notebook text'
+);
+
+create temporary table intervention_requested as
+select public.request_intervention(
+  'b2000000-0000-4000-8000-000000000001',
+  (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+  'bb000000-0000-4000-8000-000000000008'
+) as result;
+select is(
+  (select result ->> 'status' from intervention_requested),
+  'REQUESTED',
+  'Discussion Stalled creates one bounded intervention request'
+);
+select ok(
+  lower((select result -> 'context' from intervention_requested)::text)
+    not like '%owner-only%'
+  and lower((select result -> 'context' from intervention_requested)::text)
+    not like '%submitted theory with no correctness%',
+  'the intervention context excludes notebook and submitted theory prose'
+);
+create temporary table intervention_staged as
+select public.stage_intervention_preview(
+  'b2000000-0000-4000-8000-000000000001',
+  ((select result ->> 'requestId' from intervention_requested))::uuid,
+  null::uuid,null::uuid,'GENTLE','PROVIDER_TIMEOUT',null::text,null::text,
+  0,0,12000,'PROVIDER_TIMEOUT'
+) as result;
+select is(
+  (select result ->> 'selectionSource' from intervention_staged),
+  'PREPARED_FALLBACK',
+  'a provider timeout stages deterministic prepared canonical content'
+);
+select is(
+  public.resolve_intervention(
+    'b2000000-0000-4000-8000-000000000001',
+    ((select result ->> 'requestId' from intervention_requested))::uuid,
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000009','APPROVE'
+  ) ->> 'status',
+  'RELEASED',
+  'Game Master approval releases the validated canonical intervention once'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000002","role":"authenticated"}',
+  true
+);
+select is(
+  pg_catalog.jsonb_array_length(
+    public.get_actor_view('b2000000-0000-4000-8000-000000000001')
+      -> 'releasedInterventions'
+  ),
+  1,
+  'players receive approved intervention content only after release'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
 );
 
 select is(

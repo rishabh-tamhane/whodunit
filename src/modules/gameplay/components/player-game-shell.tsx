@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { z } from "zod";
 
 import {
@@ -92,8 +92,9 @@ export function PlayerGameShell({
     notebookSuspects(note),
   );
   const [evidenceIds, setEvidenceIds] = useState<string[]>([]);
-  const initiallyVisibleEvidence = useRef(
-    new Set((initialView.evidence ?? []).map((item) => value(item, "id"))),
+  const [initiallyVisibleEvidence] = useState(
+    () =>
+      new Set((initialView.evidence ?? []).map((item) => value(item, "id"))),
   );
   const saveNotebook = useCallback(async () => {
     setSaveState("SAVING");
@@ -383,9 +384,7 @@ export function PlayerGameShell({
                   typeof item.content === "object" && item.content !== null
                     ? (item.content as Record<string, unknown>)
                     : {};
-                const isNew = !initiallyVisibleEvidence.current.has(
-                  value(item, "id"),
-                );
+                const isNew = !initiallyVisibleEvidence.has(value(item, "id"));
                 return (
                   <EvidenceCard
                     key={value(item, "id")}
@@ -399,6 +398,29 @@ export function PlayerGameShell({
               })
             )}
           </div>
+          {(player.releasedInterventions ?? []).length > 0 ? (
+            <Card className="mt-4">
+              <h2 className="text-xl font-black">Game Master prompts</h2>
+              <div className="mt-4 grid gap-3">
+                {(player.releasedInterventions ?? []).map((item) => {
+                  const presentation =
+                    typeof item.presentation === "object" &&
+                    item.presentation !== null
+                      ? (item.presentation as Record<string, unknown>)
+                      : {};
+                  return (
+                    <Alert
+                      key={value(item, "id")}
+                      title={value(item, "kind").replaceAll("_", " ")}
+                      tone="violet"
+                    >
+                      {value(presentation, "text")}
+                    </Alert>
+                  );
+                })}
+              </div>
+            </Card>
+          ) : null}
         </section>
       ) : null}
       {surface === "notebook" ? (
@@ -535,14 +557,6 @@ export function PlayerGameShell({
               ))}
             </div>
           </Card>
-          {(player.releasedInterventions ?? []).length > 0 ? (
-            <Card>
-              <h2 className="text-xl font-black">Game Master prompts</h2>
-              <pre className="mt-4 whitespace-pre-wrap text-sm text-stone-300">
-                {JSON.stringify(player.releasedInterventions, null, 2)}
-              </pre>
-            </Card>
-          ) : null}
         </>
       ) : null}
       {surface === "accuse" ? (

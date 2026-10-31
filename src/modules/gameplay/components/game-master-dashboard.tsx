@@ -13,6 +13,7 @@ import {
 } from "@/components/ui";
 import {
   GameplayCommandResultSchema,
+  InterventionPreviewResultSchema,
   StoryPackageSchema,
   type GameMasterViewSchema,
 } from "@/contracts";
@@ -56,7 +57,11 @@ export function GameMasterDashboard({
   );
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string>();
+  const [interventionPreview, setInterventionPreview] = useState<
+    ReturnType<typeof InterventionPreviewResultSchema.parse> | undefined
+  >();
   if (!view || view.actor !== "GAME_MASTER" || !view.story) return null;
+  const activeView = view;
   const story = StoryPackageSchema.safeParse(view.story.package);
   if (!story.success)
     return (
@@ -67,6 +72,9 @@ export function GameMasterDashboard({
   const runtimeMissions = records(view.runtime?.missions);
   const evidenceReleases = records(view.runtime?.evidenceReleases);
   const consequenceStates = records(view.runtime?.consequences);
+  const interventionRequests = records(view.runtime?.interventionRequests);
+  const interventionPreviews = records(view.runtime?.interventionPreviews);
+  const interventionReleases = records(view.runtime?.interventionReleases);
   const missionStatus = new Map(
     runtimeMissions.map((item) => [
       String(item.mission_spec_id),
@@ -90,6 +98,36 @@ export function GameMasterDashboard({
   const currentRoundSequence = view.room.currentRoundId
     ? (roundSequence.get(view.room.currentRoundId) ?? 0)
     : 0;
+  const currentRoundReleasedInterventions = interventionReleases.filter(
+    (release) => {
+      const request = interventionRequests.find(
+        (item) =>
+          stringValue(item, "id") ===
+          stringValue(release, "request_id", "requestId"),
+      );
+      return (
+        stringValue(request ?? {}, "round_id", "roundId") ===
+        view.room.currentRoundId
+      );
+    },
+  ).length;
+  const interventionCap = [30, 45].includes(
+    story.data.durationProfile.durationMinutes,
+  )
+    ? 1
+    : 2;
+  const pendingRequest = [...interventionRequests]
+    .reverse()
+    .find((item) =>
+      ["REQUESTED", "PREVIEW_READY"].includes(stringValue(item, "status")),
+    );
+  const persistedPreview = pendingRequest
+    ? interventionPreviews.find(
+        (item) =>
+          stringValue(item, "request_id", "requestId") ===
+          stringValue(pendingRequest, "id"),
+      )
+    : undefined;
 
   async function command(path: string, input: object) {
     setBusy(true);
@@ -110,10 +148,35 @@ export function GameMasterDashboard({
       setBusy(false);
     }
   }
-  const metadata = () => ({
-    expectedStateVersion: view.room.stateVersion,
-    idempotencyKey: createIdempotencyKey(),
-  });
+  async function requestIntervention() {
+    setBusy(true);
+    setActionError(undefined);
+    try {
+      const result = await requestJson({
+        url: `/api/v1/rooms/${roomId}/interventions`,
+        method: "POST",
+        input: metadata(),
+        outputSchema: InterventionPreviewResultSchema,
+      });
+      setInterventionPreview(result);
+      await refresh();
+    } catch (caught) {
+      setActionError(
+        caught instanceof Error
+          ? caught.message
+          : "An intervention could not be prepared.",
+      );
+      await refresh().catch(() => undefined);
+    } finally {
+      setBusy(false);
+    }
+  }
+  function metadata() {
+    return {
+      expectedStateVersion: activeView.room.stateVersion,
+      idempotencyKey: createIdempotencyKey(),
+    };
+  }
 
   return (
     <div className="mt-8 grid gap-6">
@@ -188,6 +251,101 @@ export function GameMasterDashboard({
             }))}
           />
         </div>
+      </Card>
+      <Card elevated>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-black">Discussion intervention</h2>
+            <p className="mt-2 text-sm text-stone-400">
+              {currentRoundReleasedInterventions}/{interventionCap} released in
+              this round. Suggestions select canonical content only and never
+              reach players before your approval.
+            </p>
+          </div>
+          <Button
+            disabled={
+              busy ||
+              view.room.status !== "IN_PROGRESS" ||
+              Boolean(pendingRequest) ||
+              currentRoundReleasedInterventions >= interventionCap
+            }
+            onClick={() => void requestIntervention()}
+          >
+            {busy ? "Preparing…" : "Discussion stalled"}
+          </Button>
+        </div>
+        {persistedPreview ? (
+          <div className="mt-5 rounded-xl border border-violet-300/20 bg-violet-300/5 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge tone="violet">
+                {stringValue(
+                  persistedPreview,
+                  "selection_source",
+                  "selectionSource",
+                ).replaceAll("_", " ")}
+              </StatusBadge>
+              <StatusBadge tone="warning">
+                {stringValue(
+                  persistedPreview,
+                  "candidate_kind",
+                  "candidateKind",
+                ).replaceAll("_", " ")}
+              </StatusBadge>
+            </div>
+            <h3 className="mt-4 text-lg font-black">Complete preview</h3>
+            <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap text-sm text-stone-300">
+              {JSON.stringify(
+                persistedPreview.preview_json ??
+                  persistedPreview.preview ??
+                  interventionPreview?.preview,
+                null,
+                2,
+              )}
+            </pre>
+            <p className="mt-3 text-xs text-stone-400">
+              Audience: {JSON.stringify(persistedPreview.audience_json)} ·
+              Source spec:{" "}
+              {stringValue(persistedPreview, "intervention_spec_id") ||
+                "canonical object"}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button
+                disabled={busy}
+                onClick={() =>
+                  command(
+                    `interventions/${stringValue(pendingRequest ?? {}, "id")}`,
+                    {
+                      ...metadata(),
+                      decision: "APPROVE",
+                    },
+                  )
+                }
+              >
+                Approve and release
+              </Button>
+              <Button
+                disabled={busy}
+                variant="secondary"
+                onClick={() =>
+                  command(
+                    `interventions/${stringValue(pendingRequest ?? {}, "id")}`,
+                    {
+                      ...metadata(),
+                      decision: "REJECT",
+                    },
+                  )
+                }
+              >
+                Reject
+              </Button>
+            </div>
+          </div>
+        ) : pendingRequest ? (
+          <Alert title="Preparing canonical preview" tone="warning">
+            The bounded model selection is running. A deterministic prepared
+            fallback is used by 12 seconds.
+          </Alert>
+        ) : null}
       </Card>
       <Card>
         <h2 className="text-xl font-black">Victim and canonical timeline</h2>

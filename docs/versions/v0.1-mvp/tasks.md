@@ -836,7 +836,7 @@ eligible canonical material. The Game Master sees the complete source/effect
 preview and explicitly approves release. Invalid, slow, or unavailable model
 output falls back to a prepared canonical intervention.
 
-- [ ] **INT-01 — Build the intervention candidate engine**
+- [x] **INT-01 — Build the intervention candidate engine**
   - **Depends on:** GEN-07, GAM-02, GAM-03, GAM-04, PLY-05.
   - **Deliverable:** Fresh eligible-candidate calculation using current round,
     released content, mission outcomes, prior interventions, audience, and
@@ -844,7 +844,7 @@ output falls back to a prepared canonical intervention.
   - **Done when:** Used, premature, audience-invalid, prerequisite-invalid, and
     noncanonical candidates are excluded deterministically.
 
-- [ ] **INT-02 — Build the privacy-safe intervention context**
+- [x] **INT-02 — Build the privacy-safe intervention context**
   - **Depends on:** INT-01.
   - **Deliverable:** Transactional context snapshot with canonical allowlists,
     typed outcome summaries, and aggregate suspicion signals.
@@ -854,7 +854,7 @@ output falls back to a prepared canonical intervention.
     descriptions/authorship, correctness labels, credentials, and facts outside
     the locked story.
 
-- [ ] **INT-03 — Implement structured live suggestions**
+- [x] **INT-03 — Implement structured live suggestions**
   - **Depends on:** INT-02, GEN-02, GEN-04.
   - **Deliverable:** Structured Responses call, canonical-ID/effect validator,
     application-owned canonical rendering, request history, and the provider
@@ -862,7 +862,7 @@ output falls back to a prepared canonical intervention.
   - **Done when:** Model text cannot introduce facts, relationships, motives,
     methods, alibis, roles, or solution changes.
 
-- [ ] **INT-04 — Implement timeout, budget, and deterministic fallback**
+- [x] **INT-04 — Implement timeout, budget, and deterministic fallback**
   - **Depends on:** INT-03, M0-08.
   - **Deliverable:** Per-room/per-round limits, latency and spend guard,
     cancellation, prepared fallback selector, and safe refusal/outage behavior.
@@ -870,7 +870,7 @@ output falls back to a prepared canonical intervention.
     eligible prepared intervention within the approved latency policy and do
     not consume state twice.
 
-- [ ] **INT-05 — Implement preview and transactional release**
+- [x] **INT-05 — Implement preview and transactional release**
   - **Depends on:** INT-03, INT-04, GAM-01, GAM-04.
   - **Deliverable:** Full Game Master preview, canonical source, typed effect,
     audience, approve/reject commands, one-time release, event, and signal.
@@ -879,7 +879,7 @@ output falls back to a prepared canonical intervention.
   - **Done when:** Rejection changes no gameplay state and approval releases
     exactly the validated canonical effect once.
 
-- [ ] **GM-03 — Build the intervention workflow**
+- [x] **GM-03 — Build the intervention workflow**
   - **Depends on:** GM-02, INT-05, UI-01.
   - **Deliverable:** Discussion Stalled action, progress/timeout state, complete
     preview, strength/audience/source information, approve/reject, fallback

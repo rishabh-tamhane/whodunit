@@ -103,3 +103,36 @@ export const GameplayCommandResultSchema = z.object({
   missionId: z.string().uuid().optional(),
   currentRoundId: z.string().uuid().nullable().optional(),
 });
+
+export const RequestInterventionInputSchema = DomainCommandMetadataSchema;
+export const ResolveInterventionInputSchema =
+  DomainCommandMetadataSchema.extend({
+    decision: z.enum(["APPROVE", "REJECT"]),
+  });
+export const InterventionPreviewResultSchema = z.object({
+  requestId: z.string().uuid(),
+  previewId: z.string().uuid().optional(),
+  status: z.enum(["PREVIEW_READY", "FAILED"]),
+  selectionSource: z.enum(["LIVE_AI", "PREPARED_FALLBACK"]).optional(),
+  candidateKind: z
+    .enum([
+      "DIRECTED_QUESTION",
+      "RELEASE_EVIDENCE",
+      "RELEASE_CONSEQUENCE",
+      "ACTIVATE_MISSION",
+    ])
+    .optional(),
+  sourceSpecId: z.string().uuid().nullable().optional(),
+  effect: z.record(z.string(), z.unknown()).optional(),
+  audience: z.record(z.string(), z.unknown()).optional(),
+  preview: z
+    .object({
+      text: z.string(),
+      style: z.enum(["GENTLE", "DIRECT", "URGENT"]),
+      effect: z.record(z.string(), z.unknown()),
+      targetPlayerId: z.string().uuid().optional(),
+    })
+    .optional(),
+  failureCode: z.string().optional(),
+  stateVersion: z.string(),
+});
