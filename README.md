@@ -30,6 +30,13 @@ Replace every placeholder in `.env.local` before starting the server. Runtime
 configuration is validated at server startup; missing or malformed values stop
 the process with a non-secret error message.
 
+`APP_ENV`, `NEXT_PUBLIC_APP_ENV`, and `SERVER_CREDENTIAL_SCOPE` must agree.
+Local, preview, staging, and production use separate Supabase projects and
+separately scoped server credentials. A non-production deployment fails closed
+if it is configured with `PRODUCTION_SUPABASE_PROJECT_REF`. Vercel environment
+variables must therefore be scoped per deployment environment; never copy a
+production service-role, model, webhook, recovery, or HMAC secret into Preview.
+
 The initial routes are:
 
 | Route            | Purpose                               |

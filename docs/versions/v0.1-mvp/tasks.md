@@ -236,7 +236,7 @@ are ready for feature work.
     empty/loading/error state, and back-navigation rule; the Game Master never
     receives player-only UI.
 
-- [ ] **UX-02 — Finalize privacy, consent, and gameplay copy**
+- [x] **UX-02 — Finalize privacy, consent, and gameplay copy**
   - **Depends on:** M0-02, M0-07, UX-01.
   - **Deliverable:** Copy for room-code disclosure, claim approval, device
     replacement, private descriptions, Game Master visibility, notebook and
@@ -244,7 +244,7 @@ are ready for feature work.
   - **Done when:** Copy accurately distinguishes raw inputs, owner-only drafts,
     submitted gameplay state, and the full post-lock GameMasterView.
 
-- [ ] **UI-01 — Create the mobile design system**
+- [x] **UI-01 — Create the mobile design system**
   - **Depends on:** FND-01, UX-01.
   - **Deliverable:** Tokens and accessible components for forms, player cards,
     status badges, secrets, dialogs, toasts, timelines, evidence, missions,
@@ -253,7 +253,7 @@ are ready for feature work.
     survive long Unicode names, duplicate names, narrow phones, and desktop
     Game Master layouts.
 
-- [ ] **FND-07 — Add typed API and form infrastructure**
+- [x] **FND-07 — Add typed API and form infrastructure**
   - **Depends on:** FND-04, UI-01.
   - **Deliverable:** Typed request helpers, schema-backed forms, normalized
     errors, idempotency keys, optimistic-state conventions, and 409 conflict
@@ -261,7 +261,7 @@ are ready for feature work.
   - **Done when:** A sample mutation safely handles validation, retry,
     duplicate submission, stale version, and server failure.
 
-- [ ] **FND-08 — Configure environment separation**
+- [x] **FND-08 — Configure environment separation**
   - **Depends on:** FND-03, M0-08.
   - **Deliverable:** Local, preview, staging, and production configuration
     boundaries with separate Supabase projects and restricted credentials.

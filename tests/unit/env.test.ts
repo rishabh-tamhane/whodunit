@@ -5,8 +5,14 @@ import { getServerEnv } from "@/lib/env/server";
 
 const base = {
   NODE_ENV: "test",
+  APP_ENV: "local",
+  NEXT_PUBLIC_APP_ENV: "local",
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key-for-tests",
+  SUPABASE_PROJECT_REF: "local",
+  PRODUCTION_SUPABASE_PROJECT_REF: "production-project",
+  SERVER_CREDENTIAL_SCOPE: "local",
+  VERCEL_REGION: "bom1",
   SUPABASE_SERVICE_ROLE_KEY: "service-role-key-for-tests",
   OPENAI_API_KEY: "openai-key-for-tests-123",
   OPENAI_WEBHOOK_SECRET: "webhook-secret-for-tests",
@@ -34,16 +40,44 @@ describe("environment validation", () => {
 
   it("limits browser configuration to publishable values", () => {
     const publicEnv = getPublicEnv({
+      NEXT_PUBLIC_APP_ENV: base.NEXT_PUBLIC_APP_ENV,
       NEXT_PUBLIC_SUPABASE_URL: base.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
         base.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     });
     expect(publicEnv).toEqual({
+      NEXT_PUBLIC_APP_ENV: base.NEXT_PUBLIC_APP_ENV,
       NEXT_PUBLIC_SUPABASE_URL: base.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
         base.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     });
     expect("OPENAI_API_KEY" in publicEnv).toBe(false);
     expect(() => getPublicEnv(base)).toThrow();
+  });
+
+  it("rejects a preview deployment pointed at the production database", () => {
+    expect(() =>
+      getServerEnv({
+        ...base,
+        APP_ENV: "preview",
+        NEXT_PUBLIC_APP_ENV: "preview",
+        SERVER_CREDENTIAL_SCOPE: "preview",
+        SUPABASE_PROJECT_REF: "production-project",
+        NEXT_PUBLIC_SUPABASE_URL: "https://production-project.supabase.co",
+      }),
+    ).toThrow(/cannot use the production Supabase project/i);
+  });
+
+  it("rejects production-scoped credentials in preview", () => {
+    expect(() =>
+      getServerEnv({
+        ...base,
+        APP_ENV: "preview",
+        NEXT_PUBLIC_APP_ENV: "preview",
+        SERVER_CREDENTIAL_SCOPE: "production",
+        SUPABASE_PROJECT_REF: "preview-project",
+        NEXT_PUBLIC_SUPABASE_URL: "https://preview-project.supabase.co",
+      }),
+    ).toThrow(/credentials must be scoped/i);
   });
 });

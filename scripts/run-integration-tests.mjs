@@ -151,8 +151,14 @@ async function main() {
   const baseUrl = `http://127.0.0.1:${port}`;
   const environment = {
     ...process.env,
+    APP_ENV: "local",
+    NEXT_PUBLIC_APP_ENV: "local",
     NEXT_PUBLIC_SUPABASE_URL: status.apiUrl,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: status.publishableKey,
+    SUPABASE_PROJECT_REF: "local",
+    PRODUCTION_SUPABASE_PROJECT_REF: "production-not-local",
+    SERVER_CREDENTIAL_SCOPE: "local",
+    VERCEL_REGION: "bom1",
     SUPABASE_SERVICE_ROLE_KEY: status.serviceRoleKey,
     OPENAI_API_KEY: "integration-openai-key-not-real-123",
     OPENAI_WEBHOOK_SECRET: "integration-webhook-secret-not-real",
