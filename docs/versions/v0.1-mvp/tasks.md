@@ -335,7 +335,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** One player's rows cannot reference another room or player,
     stale revisions conflict, and submitted snapshots cannot be overwritten.
 
-- [ ] **DB-08 — Add endgame result and case-file tables**
+- [x] **DB-08 — Add endgame result and case-file tables**
   - **Depends on:** DB-04, DB-05, DB-07.
   - **Deliverable:** Frozen scoring inputs, player scores, faction results,
     awards, scoring explanations, reveal publication, and finalized case-file
@@ -343,7 +343,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** Finalized artifacts are unique per room and their source
     checksums and version references are mandatory.
 
-- [ ] **DB-09 — Encode canonical and submitted-state immutability**
+- [x] **DB-09 — Encode canonical and submitted-state immutability**
   - **Depends on:** DB-04, DB-06, DB-07, DB-08.
   - **Deliverable:** Triggers and grants preventing story changes after lock,
     submitted-theory or accusation edits, duplicate releases, finalized result
