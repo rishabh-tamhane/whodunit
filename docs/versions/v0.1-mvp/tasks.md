@@ -276,7 +276,7 @@ The database encodes room isolation, host/player mutual exclusion, immutable
 canonical truth, one-active-device rules, and actor-specific access. Direct
 table access cannot bypass application commands or projections.
 
-- [ ] **DB-01 — Create schema and privilege foundations**
+- [x] **DB-01 — Create schema and privilege foundations**
   - **Depends on:** FND-05.
   - **Deliverable:** public and app_private schemas, required extensions and
     enums, revoked default grants, migration conventions, and fixed-search-path
