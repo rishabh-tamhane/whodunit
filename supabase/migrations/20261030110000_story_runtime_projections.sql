@@ -427,6 +427,7 @@ begin
         'content', dossier.dossier_json,
         'faction', case
           when room_record.status in ('REVEAL', 'COMPLETED')
+            or coalesce((dossier.knowledge_policy_json ->> 'factionVisible')::boolean, false)
             then dossier.faction::text
           else null
         end

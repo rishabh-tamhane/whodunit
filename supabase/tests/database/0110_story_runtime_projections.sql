@@ -1,6 +1,6 @@
 begin;
 
-select plan(37);
+select plan(38);
 
 select has_function(
   'public', 'get_game_master_view', array['uuid'],
@@ -474,13 +474,16 @@ select is(
 select ok(
   not public.get_player_view(
     'd1000000-0000-4000-8000-000000000001'
-  ) ? 'story'
-  and not (
-    public.get_player_view(
-      'd1000000-0000-4000-8000-000000000001'
-    ) -> 'dossier'
-  ) ? 'faction',
-  'a pre-reveal player receives neither canonical story nor true faction'
+  ) ? 'story',
+  'a pre-reveal player never receives the canonical story'
+);
+
+select is(
+  public.get_player_view(
+    'd1000000-0000-4000-8000-000000000001'
+  ) #>> '{dossier,faction}',
+  'INNOCENT',
+  'a pre-reveal player receives their own authorized faction'
 );
 
 select is(

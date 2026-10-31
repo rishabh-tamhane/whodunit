@@ -554,7 +554,7 @@ repair bounded failures, and atomically lock exactly one immutable canonical
 story. Failed or partial output never becomes playable, and locked rooms can
 never regenerate.
 
-- [ ] **GEN-01 — Define the versioned StoryPackage**
+- [x] **GEN-01 — Define the versioned StoryPackage**
   - **Depends on:** FND-04.
   - **Deliverable:** Strict Zod contract, JSON Schema, generated ID types,
     canonical serialization/checksum utility, and valid fixtures.
@@ -562,7 +562,7 @@ never regenerate.
     auth IDs in player fields, missing NPC victim, and incomplete sections are
     rejected.
 
-- [ ] **GEN-02 — Build deterministic story validators**
+- [x] **GEN-02 — Build deterministic story validators**
   - **Depends on:** GEN-01, DB-12.
   - **Deliverable:** Structural, information-flow, mission, evidence-graph,
     solvability, exact-player-set, duration-profile, and cultural-safety
@@ -572,7 +572,7 @@ never regenerate.
     real-world-harm consequences, stereotypes, unresolved truth, or copied raw
     descriptions fail with repairable diagnostics.
 
-- [ ] **GEN-03 — Build the immutable generation snapshot**
+- [x] **GEN-03 — Build the immutable generation snapshot**
   - **Depends on:** GEN-01, IDN-13, M0-02.
   - **Deliverable:** Transactional input snapshot and prompt builder with
     untrusted-data delimiters, author removal, Unicode support, sensitive-motive
@@ -581,7 +581,7 @@ never regenerate.
   - **Done when:** The snapshot contains no auth IDs, description authorship,
     notebooks, theory/accusation drafts, recovery secrets, or stale room data.
 
-- [ ] **GEN-04 — Implement the OpenAI provider adapter**
+- [x] **GEN-04 — Implement the OpenAI provider adapter**
   - **Depends on:** FND-03, GEN-01.
   - **Deliverable:** Application-owned Responses API interface, Structured
     Outputs, background-mode support, configured storage policy, default
@@ -592,7 +592,7 @@ never regenerate.
     provider IDs stay server-side, and provider failures normalize into stable
     errors.
 
-- [ ] **GEN-05 — Implement durable generation jobs**
+- [x] **GEN-05 — Implement durable generation jobs**
   - **Depends on:** DB-04, DB-05, GEN-03, GEN-04.
   - **Deliverable:** Start/status APIs, phased jobs, signed webhook
     verification, receipt deduplication, checkpoints, lease/timeout handling,
@@ -600,7 +600,7 @@ never regenerate.
   - **Done when:** Start returns 202, replayed or out-of-order webhooks cannot
     duplicate a phase, and interrupted work resumes or terminates safely.
 
-- [ ] **GEN-06 — Implement critic, repair, and escalation**
+- [x] **GEN-06 — Implement critic, repair, and escalation**
   - **Depends on:** GEN-02, GEN-05.
   - **Deliverable:** Semantic critic, bounded repair, blueprint restart,
     validation diagnostics, approved-model escalation, token/attempt limits,
@@ -609,7 +609,7 @@ never regenerate.
     and exhausted generation returns the still-unlocked room to an actionable
     LOBBY state.
 
-- [ ] **GEN-07 — Implement atomic story lock**
+- [x] **GEN-07 — Implement atomic story lock**
   - **Depends on:** DB-09, GEN-02, GEN-06.
   - **Deliverable:** One transaction that rechecks room readiness and exact
     player set, inserts canonical/materialized rows, records checksums and
@@ -619,7 +619,7 @@ never regenerate.
     yield exactly one story, GameMasterView becomes complete at commit, and
     post-lock regeneration or mutation fails.
 
-- [ ] **GEN-08 — Implement post-lock projections**
+- [x] **GEN-08 — Implement post-lock projections**
   - **Depends on:** GEN-07, DB-11.
   - **Deliverable:** Full GameMasterView, player dossier/round view,
     awareness-aware faction knowledge, delayed accomplice revelation, and
@@ -628,7 +628,7 @@ never regenerate.
     commit the Game Master sees every generated section; each player sees only
     their authorized knowledge.
 
-- [ ] **GEN-09 — Purge sensitive generation source input**
+- [x] **GEN-09 — Purge sensitive generation source input**
   - **Depends on:** GEN-05, GEN-06, GEN-07.
   - **Deliverable:** Idempotent purge marker, immediate cleanup attempt, retry
     sweeper, and sanitized operational record covering raw descriptions,
@@ -639,7 +639,7 @@ never regenerate.
     per-attempt snapshots, provider artifacts, and invalid output are gone
     within 24 hours after a generation job becomes terminal.
 
-- [ ] **GEN-10 — Build story-evaluation fixtures**
+- [x] **GEN-10 — Build story-evaluation fixtures**
   - **Depends on:** GEN-02, GEN-04.
   - **Deliverable:** Fixed 4–12-player corpus, both murderer-awareness modes,
     multiple-murderer cases, Indian names/contexts, adversarial descriptions,
@@ -649,7 +649,7 @@ never regenerate.
     cost, fictional consequence escalation, and raw-input non-copying with
     adversarial overlap/regression checks.
 
-- [ ] **GEN-11 — Build Game Master generation UX**
+- [x] **GEN-11 — Build Game Master generation UX**
   - **Depends on:** GEN-05, GEN-06, GEN-07, GEN-08, IDN-16, UI-01.
   - **Deliverable:** Explicit Generate action, readiness blockers, phase-level
     progress, long-wait guidance, retryable failure, terminal failure, and

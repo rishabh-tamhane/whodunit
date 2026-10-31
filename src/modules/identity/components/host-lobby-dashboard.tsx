@@ -5,11 +5,17 @@ import { z } from "zod";
 
 import { Alert, Button, Card, PlayerCard, StatusBadge } from "@/components/ui";
 import {
+  GenerationStatusViewSchema,
   GameMasterOnboardingViewSchema,
   MembershipIdSchema,
   RoomIdSchema,
+  StartedGenerationSchema,
 } from "@/contracts";
-import { ApiClientError, requestJson } from "@/lib/api/request";
+import {
+  ApiClientError,
+  createIdempotencyKey,
+  requestJson,
+} from "@/lib/api/request";
 
 const VersionResultSchema = z.object({ stateVersion: z.string() });
 
@@ -26,6 +32,8 @@ export function HostLobbyDashboard({ roomId }: { roomId: string }) {
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [rotatedLink, setRotatedLink] = useState<string>();
+  const [generation, setGeneration] =
+    useState<z.infer<typeof GenerationStatusViewSchema>>();
 
   const refresh = useCallback(async () => {
     const loaded = await requestJson({
@@ -33,6 +41,11 @@ export function HostLobbyDashboard({ roomId }: { roomId: string }) {
       outputSchema: GameMasterOnboardingViewSchema,
     });
     setView(loaded);
+    const generationStatus = await requestJson({
+      url: `/api/v1/rooms/${validatedRoomId}/generation`,
+      outputSchema: GenerationStatusViewSchema,
+    });
+    setGeneration(generationStatus);
   }, [validatedRoomId]);
 
   useEffect(() => {
@@ -125,6 +138,21 @@ export function HostLobbyDashboard({ roomId }: { roomId: string }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function generateMystery() {
+    if (!view || !view.readiness.ready || generation?.locked) return;
+    await run(() =>
+      requestJson({
+        url: `/api/v1/rooms/${validatedRoomId}/generation`,
+        method: "POST",
+        input: {
+          expectedStateVersion: view.room.stateVersion,
+          idempotencyKey: createIdempotencyKey(),
+        },
+        outputSchema: StartedGenerationSchema,
+      }),
+    );
   }
 
   if (!view) {
@@ -290,6 +318,57 @@ export function HostLobbyDashboard({ roomId }: { roomId: string }) {
             </Button>
           </div>
         ) : null}
+        <div className="mt-6 border-t border-white/10 pt-5">
+          {generation?.locked ? (
+            <Alert title="Mystery locked" tone="success">
+              The one canonical story is ready. It can never regenerate or be
+              replaced; all generated content is now available to you as Game
+              Master.
+            </Alert>
+          ) : generation?.job?.status === "RUNNING" ||
+            generation?.job?.status === "PENDING" ? (
+            <div role="status" aria-live="polite">
+              <StatusBadge tone="violet">
+                {generation.job.phase.replaceAll("_", " ")}
+              </StatusBadge>
+              <p className="mt-3 font-bold">Building the mystery…</p>
+              <p className="mt-2 text-sm leading-6 text-stone-400">
+                Validation, repair, and locking may take several minutes. You
+                can safely leave this page or refresh; no partial story is ever
+                shown.
+              </p>
+              <p className="mt-2 text-xs text-stone-500">
+                Attempt {generation.job.attemptCount} · repairs{" "}
+                {generation.job.repairCount}/2
+              </p>
+            </div>
+          ) : generation?.job?.status === "FAILED" ? (
+            <Alert title="Generation did not lock" tone="danger">
+              No partial story was saved. Private source text was purged. Ask
+              players to resubmit their descriptions, then generate again.
+            </Alert>
+          ) : (
+            <>
+              <p className="text-sm leading-6 text-stone-300">
+                Once started, the system validates and may repair the mystery
+                before one atomic lock. After lock there is no regenerate
+                button; create a new room for a different story.
+              </p>
+              <Button
+                className="mt-4 w-full sm:w-auto"
+                disabled={busy || !view.readiness.ready}
+                onClick={generateMystery}
+              >
+                {busy ? "Starting…" : "Generate and lock mystery"}
+              </Button>
+              {!view.readiness.ready ? (
+                <p className="mt-2 text-xs text-amber-200">
+                  Complete every readiness item before generation.
+                </p>
+              ) : null}
+            </>
+          )}
+        </div>
       </Card>
 
       <Card>

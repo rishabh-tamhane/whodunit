@@ -24,3 +24,20 @@ export function getSupabaseAdminClient() {
   );
   return adminClient;
 }
+
+export async function callSupabaseAdminRpc(
+  functionName: string,
+  args: Record<string, unknown> = {},
+): Promise<{
+  data: unknown;
+  error: { code?: string; message: string } | null;
+}> {
+  const rpc = getSupabaseAdminClient().rpc as unknown as (
+    name: string,
+    parameters: Record<string, unknown>,
+  ) => Promise<{
+    data: unknown;
+    error: { code?: string; message: string } | null;
+  }>;
+  return rpc(functionName, args);
+}
