@@ -21,7 +21,7 @@
     "db:verify": "node scripts/verify-local-database.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:integration": "node scripts/run-integration-tests.mjs",
     "test:watch": "vitest",

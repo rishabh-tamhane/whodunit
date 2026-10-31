@@ -19,11 +19,11 @@ const commandEnvironment = {
   SUPABASE_TELEMETRY_DISABLED: "1",
 };
 
-async function run(command, arguments_) {
+async function run(command, arguments_, { hideStdout = false } = {}) {
   const child = spawn(command, arguments_, {
     cwd: projectRoot,
     env: commandEnvironment,
-    stdio: "inherit",
+    stdio: hideStdout ? ["ignore", "ignore", "inherit"] : "inherit",
   });
 
   const exitCode = await new Promise((resolve, reject) => {
@@ -44,7 +44,9 @@ async function main() {
 
   try {
     startAttempted = true;
-    await run(supabaseBinary, ["start"]);
+    // `supabase start` prints disposable local API keys to stdout. The
+    // integration runner reads them directly from `supabase status` instead.
+    await run(supabaseBinary, ["start"], { hideStdout: true });
     await run(supabaseBinary, ["db", "reset", "--local"]);
     await run(supabaseBinary, ["test", "db", "--local"]);
     await run(npmBinary, ["run", "test:integration"]);
@@ -53,7 +55,9 @@ async function main() {
   } finally {
     if (process.env.CI === "true" && startAttempted) {
       try {
-        await run(supabaseBinary, ["stop", "--no-backup"]);
+        await run(supabaseBinary, ["stop", "--no-backup"], {
+          hideStdout: true,
+        });
       } catch (cleanupError) {
         if (failure) {
           console.error(

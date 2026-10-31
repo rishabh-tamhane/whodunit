@@ -284,7 +284,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** Anonymous and authenticated roles cannot directly access
     app_private and migrations reset cleanly.
 
-- [ ] **DB-02 — Add room, player, membership, and description tables**
+- [x] **DB-02 — Add room, player, membership, and description tables**
   - **Depends on:** DB-01, FND-04.
   - **Deliverable:** rooms, players, room_memberships,
     room_host_principals, player_descriptions, host recovery records, consent,
