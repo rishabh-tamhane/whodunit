@@ -36,6 +36,7 @@ It starts the disposable local Supabase Docker stack, replays every forward migr
 | GAM-03 failure receipt | `20261030210000_gameplay_failure_receipt.sql` | `0170_generation_pipeline.sql` full journey |
 | OPS-01/OPS-03 model-call budgets | `20261030220000_operational_budgets.sql` | `0220_operational_budgets.sql` |
 | OPS-01/OPS-02 alert evaluation | `20261030230000_operational_alerts.sql` | `0230_operational_alerts.sql` |
+| Non-retryable stale-state conflicts | `20261030240000_non_retryable_stale_state.sql` | `0240_non_retryable_stale_state.sql` |
 
 `0001_harness_smoke.sql` separately proves that local Auth, Postgres, and migration history exist before domain tests run.
 

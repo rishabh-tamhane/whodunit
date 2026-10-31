@@ -374,7 +374,7 @@ select is(
       updated_at = app_private.current_database_time()
     where id = 'da000000-0000-4000-8000-000000000001'
   $sql$),
-  '40001',
+  'P4091',
   'a stale notebook revision conflicts'
 );
 
@@ -678,7 +678,7 @@ select is(
       updated_at = app_private.current_database_time()
     where id = 'df000000-0000-4000-8000-000000000001'
   $sql$),
-  '40001',
+  'P4091',
   'a stale final accusation draft revision conflicts'
 );
 

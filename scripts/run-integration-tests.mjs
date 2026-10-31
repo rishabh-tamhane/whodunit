@@ -111,7 +111,12 @@ async function waitForHealth(baseUrl, child) {
 async function runVitest(environment) {
   const child = spawn(
     vitestBinary,
-    ["run", "--config", "vitest.integration.config.ts"],
+    [
+      "run",
+      "--config",
+      "vitest.integration.config.ts",
+      ...process.argv.slice(2),
+    ],
     {
       cwd: projectRoot,
       env: environment,

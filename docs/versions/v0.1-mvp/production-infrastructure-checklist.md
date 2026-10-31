@@ -14,7 +14,7 @@ values, room recovery links, player data, prompts, or generated stories here.
 | DNS | Cloudflare DNS-only CNAME to Vercel | Ready |
 | TLS | Managed by Vercel for the public hostname | Ready |
 | Database/Auth | Supabase project `vicgjoyxlwubjuskwgce`, Seoul (`ap-northeast-2`) | Ready |
-| Database schema | All 24 committed migrations applied | Ready |
+| Database schema | All 24 deployed migrations applied; one verified fix pending deployment | Ready with pending update |
 | Guest access | Supabase anonymous sign-in enabled | Ready |
 | Maintenance | Vercel Cron once daily at 05:00 UTC | Ready |
 | OpenAI API key | Rotated by the owner; value is not stored in this record | Ready for a controlled smoke test |
@@ -35,6 +35,8 @@ Cloudflare challenge rules are future upgrades, not v0.1 hobby prerequisites.
 - [x] The room code is discovery-only and the recovery credential is not logged.
 - [x] All local and linked migration versions match.
 - [x] The public hostname resolves through Cloudflare DNS and serves Vercel over HTTPS.
+- [x] The local mocked browser suite passes desktop Chromium, Pixel 7 Chromium,
+      and desktop WebKit accessibility/responsive checks (6/6).
 
 The disposable smoke room contains no real player data and may expire through
 the normal inactive-room retention process.
@@ -50,7 +52,7 @@ the normal inactive-room retention process.
 - [ ] Complete one real end-to-end game: claims, GameMasterView, a gameplay
       command, intervention/fallback, final accusation, reveal, and case file.
 - [ ] Check the player experience on the phones and browsers the group will
-      actually use.
+      actually use, including one screen-reader pass.
 - [ ] Confirm the daily maintenance invocation succeeds after its first run.
 
 ## Deliberate hobby trade-offs

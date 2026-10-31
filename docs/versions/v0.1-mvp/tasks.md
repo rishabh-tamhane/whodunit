@@ -1213,6 +1213,11 @@ and production smoke tests are complete.
     lock, and cleanup-batch measurements.
   - **Done when:** M0-08 targets pass or documented release blockers have an
     approved remediation.
+  - **Current status (2026-10-30):** The local capacity regression passes three
+    warmed runs of 120 concurrent reads and 10 concurrent room creations under
+    its 500 ms read and 750 ms command p95 budgets. The full integration suite
+    passes 11/11 after fixing a stale-state retry loop. Live OpenAI latency,
+    Realtime fan-out, and real-party measurements remain open.
 
 - [ ] **QA-08 — Run accessibility and browser/device verification**
   - **Depends on:** APP-03, M0-07, M0-08.
@@ -1221,6 +1226,11 @@ and production smoke tests are complete.
     long Unicode names, and supported-browser matrix.
   - **Done when:** No critical accessibility defect remains and the agreed
     device/browser matrix passes.
+  - **Current status (2026-10-30):** The mocked production browser suite passes
+    6/6 checks on desktop Chromium, Pixel 7 Chromium emulation, and desktop
+    WebKit, including axe WCAG A/AA, focus, touch targets, reduced motion,
+    Unicode, and narrow-layout checks. A real-device and screen-reader pass
+    remains human-owned.
 
 - [x] **QA-09 — Run security and privacy verification**
   - **Depends on:** SEC-01 through SEC-04, REL-05, REL-06.

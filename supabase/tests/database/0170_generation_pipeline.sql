@@ -291,7 +291,7 @@ select throws_ok(
     'b2000000-0000-4000-8000-000000000001', 0,
     'Stale overwrite', '[]'::jsonb
   )$$,
-  '40001', 'stale notebook revision',
+  'P4091', 'stale notebook revision',
   'a stale notebook write cannot overwrite a newer revision'
 );
 

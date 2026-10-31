@@ -378,6 +378,7 @@ export function databaseError(
     "40001": { status: 409, code: "STALE_STATE_VERSION" },
     "42501": { status: 403, code: "FORBIDDEN" },
     "55000": { status: 409, code: "INVALID_ROOM_STATE" },
+    P4091: { status: 409, code: "STALE_STATE_VERSION" },
   };
   const mapped = mapping[error.code ?? ""] ?? {
     status: 500,
