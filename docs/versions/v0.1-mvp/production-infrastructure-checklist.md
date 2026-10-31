@@ -9,12 +9,12 @@ values, room recovery links, player data, prompts, or generated stories here.
 | Component | Current configuration | Status |
 |---|---|---|
 | Application | Vercel Hobby project `whodunit`, Node 24, region `bom1` | Ready |
-| Healthy deployment | `DWUYY25p52EkzH6rXyC67S8BEmEE` | Ready |
+| Healthy deployment | Latest `main` deployment, tracked in Vercel | Ready |
 | Public URL | `https://whodunit.rishabhtamhane.com` | Ready |
 | DNS | Cloudflare DNS-only CNAME to Vercel | Ready |
 | TLS | Managed by Vercel for the public hostname | Ready |
 | Database/Auth | Supabase project `vicgjoyxlwubjuskwgce`, Seoul (`ap-northeast-2`) | Ready |
-| Database schema | All 24 deployed migrations applied; one verified fix pending deployment | Ready with pending update |
+| Database schema | All 25 committed migrations applied | Ready |
 | Guest access | Supabase anonymous sign-in enabled | Ready |
 | Maintenance | Vercel Cron once daily at 05:00 UTC | Ready |
 | OpenAI API key | Rotated by the owner; value is not stored in this record | Ready for a controlled smoke test |
@@ -34,6 +34,8 @@ Cloudflare challenge rules are future upgrades, not v0.1 hobby prerequisites.
 - [x] A disposable DRAFT room can be created through the public API.
 - [x] The room code is discovery-only and the recovery credential is not logged.
 - [x] All local and linked migration versions match.
+- [x] Simultaneous stale commands return one success and one immediate HTTP 409,
+      without retrying until timeout.
 - [x] The public hostname resolves through Cloudflare DNS and serves Vercel over HTTPS.
 - [x] The local mocked browser suite passes desktop Chromium, Pixel 7 Chromium,
       and desktop WebKit accessibility/responsive checks (6/6).
