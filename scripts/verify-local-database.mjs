@@ -50,6 +50,7 @@ async function main() {
     await run(supabaseBinary, ["db", "reset", "--local"]);
     await run(supabaseBinary, ["test", "db", "--local"]);
     await run(npmBinary, ["run", "test:integration"]);
+    await run(npmBinary, ["run", "test:e2e"]);
   } catch (error) {
     failure = error;
   } finally {

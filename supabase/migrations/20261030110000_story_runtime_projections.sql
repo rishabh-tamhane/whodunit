@@ -424,7 +424,7 @@ begin
       select pg_catalog.jsonb_strip_nulls(pg_catalog.jsonb_build_object(
         'id', dossier.id,
         'knowledgePolicy', dossier.knowledge_policy_json,
-        'content', dossier.dossier_json,
+        'content', dossier.dossier_json - 'faction',
         'faction', case
           when room_record.status in ('REVEAL', 'COMPLETED')
             or coalesce((dossier.knowledge_policy_json ->> 'factionVisible')::boolean, false)

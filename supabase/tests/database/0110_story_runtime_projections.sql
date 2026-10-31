@@ -1,6 +1,6 @@
 begin;
 
-select plan(41);
+select plan(42);
 
 select has_function(
   'public', 'get_game_master_view', array['uuid'],
@@ -202,7 +202,7 @@ values
     'd6000000-0000-4000-8000-000000000001',
     'd3000000-0000-4000-8000-000000000002',
     'MURDERER', '{"factionVisible":false}'::jsonb,
-    '{"role":"Collector","privateSecret":"Vikram dossier"}'::jsonb
+    '{"role":"Collector","privateSecret":"Vikram dossier","faction":"MURDERER"}'::jsonb
   );
 
 insert into app_private.evidence (
@@ -615,6 +615,16 @@ select is(
   ) #>> '{notebook,notesText}',
   'Vikram private notebook',
   'a second player receives only the second player notebook'
+);
+
+select ok(
+  not (public.get_player_view(
+    'd1000000-0000-4000-8000-000000000001'
+  ) -> 'dossier') ? 'faction'
+  and not (public.get_player_view(
+    'd1000000-0000-4000-8000-000000000001'
+  ) #> '{dossier,content}') ? 'faction',
+  'an unaware murderer receives no faction through either dossier field'
 );
 
 select set_config(

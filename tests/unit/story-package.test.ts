@@ -62,6 +62,16 @@ describe("deterministic validators", () => {
     expect(categories).toContain("PLAYER_SET");
   });
 
+  it("rejects a package that changes the configured scoring profile", () => {
+    const fixture = createStoryFixture(4);
+    fixture.story.scoringProfileVersion = "unknown-score-profile";
+    expect(
+      validateStoryPackage(fixture.story, fixture.context).map(
+        (item) => item.category,
+      ),
+    ).toContain("STRUCTURE");
+  });
+
   it("reports premature knowledge and impossible mission coverage", () => {
     const fixture = createStoryFixture(5, false);
     fixture.story.dossiers[0]!.knownMurdererPlayerIds = [

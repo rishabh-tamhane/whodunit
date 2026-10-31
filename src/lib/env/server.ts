@@ -17,6 +17,7 @@ const ServerEnvSchema = z
     VERCEL_REGION: z.string().min(1).default("bom1"),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
     OPENAI_API_KEY: z.string().min(20),
+    OPENAI_BASE_URL: z.url().default("https://api.openai.com/v1"),
     OPENAI_WEBHOOK_SECRET: z.string().min(16),
     HOST_RECOVERY_TOKEN_PEPPER: z.string().min(32),
     SAFETY_IDENTIFIER_HMAC_SECRET: z.string().min(32),
@@ -40,6 +41,17 @@ const ServerEnvSchema = z
         path: ["SERVER_CREDENTIAL_SCOPE"],
         message:
           "Server credentials must be scoped to this deployment environment.",
+      });
+    }
+
+    if (
+      environment.APP_ENV === "production" &&
+      new URL(environment.OPENAI_BASE_URL).origin !== "https://api.openai.com"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["OPENAI_BASE_URL"],
+        message: "Production OpenAI requests must use the official API origin.",
       });
     }
 
@@ -95,6 +107,7 @@ function readServerEnv(): Record<string, string | undefined> {
     VERCEL_REGION: process.env.VERCEL_REGION,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
     OPENAI_WEBHOOK_SECRET: process.env.OPENAI_WEBHOOK_SECRET,
     HOST_RECOVERY_TOKEN_PEPPER: process.env.HOST_RECOVERY_TOKEN_PEPPER,
     SAFETY_IDENTIFIER_HMAC_SECRET: process.env.SAFETY_IDENTIFIER_HMAC_SECRET,

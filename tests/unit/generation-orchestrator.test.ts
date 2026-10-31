@@ -34,7 +34,7 @@ const snapshot = {
     durationProfileVersion: "duration-v1" as const,
     durationMinutes: 30 as const,
     roundCount: 2,
-    scoringProfileVersion: "scoring-v1",
+    scoringProfileVersion: "score-v1",
     murdererCount: 1,
     accompliceCount: 0,
     innocentCount: 3,

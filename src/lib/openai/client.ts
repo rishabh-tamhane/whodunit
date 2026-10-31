@@ -11,7 +11,11 @@ export function getOpenAIClient(): OpenAI {
     return openAIClient;
   }
 
-  openAIClient = new OpenAI({ apiKey: getServerEnv().OPENAI_API_KEY });
+  const environment = getServerEnv();
+  openAIClient = new OpenAI({
+    apiKey: environment.OPENAI_API_KEY,
+    baseURL: environment.OPENAI_BASE_URL,
+  });
   return openAIClient;
 }
 

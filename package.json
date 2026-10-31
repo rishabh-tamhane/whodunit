@@ -27,6 +27,7 @@
     "test:story-evals": "vitest run tests/unit/story-evaluation.test.ts",
     "eval:story:live": "node --env-file-if-exists=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.story-evals.config.ts",
     "test:integration": "node scripts/run-integration-tests.mjs",
+    "test:e2e": "node scripts/run-e2e-tests.mjs",
     "test:watch": "vitest",
     "check": "npm run format:check && npm run lint && npm run check:boundaries && npm run scan:secrets && npm run typecheck && npm test && npm run build"
   },
@@ -41,6 +42,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
@@ -50,6 +52,7 @@
     "prettier": "3.9.10",
     "supabase": "2.122.0",
     "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
     "typescript": "6.0.3",
     "vitest": "5.0.5"
   }

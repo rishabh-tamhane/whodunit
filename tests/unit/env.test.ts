@@ -81,4 +81,23 @@ describe("environment validation", () => {
       }),
     ).toThrow(/credentials must be scoped/i);
   });
+
+  it("allows a loopback provider only outside production", () => {
+    expect(
+      getServerEnv({ ...base, OPENAI_BASE_URL: "http://127.0.0.1:4567/v1" })
+        .OPENAI_BASE_URL,
+    ).toBe("http://127.0.0.1:4567/v1");
+    expect(() =>
+      getServerEnv({
+        ...base,
+        NODE_ENV: "production",
+        APP_ENV: "production",
+        NEXT_PUBLIC_APP_ENV: "production",
+        SERVER_CREDENTIAL_SCOPE: "production",
+        SUPABASE_PROJECT_REF: "production-project",
+        NEXT_PUBLIC_SUPABASE_URL: "https://production-project.supabase.co",
+        OPENAI_BASE_URL: "http://127.0.0.1:4567/v1",
+      }),
+    ).toThrow(/official API origin/i);
+  });
 });

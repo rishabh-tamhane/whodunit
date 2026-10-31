@@ -14,11 +14,7 @@ export function useActorProjection(roomId: string, initialView?: ActorView) {
   const [error, setError] = useState<string>();
   const [connection, setConnection] = useState<
     "CONNECTED" | "RECONNECTING" | "OFFLINE"
-  >(
-    typeof navigator !== "undefined" && !navigator.onLine
-      ? "OFFLINE"
-      : "CONNECTED",
-  );
+  >("CONNECTED");
   const versionRef = useRef(initialView?.room.stateVersion);
 
   const refresh = useCallback(async () => {
@@ -44,6 +40,9 @@ export function useActorProjection(roomId: string, initialView?: ActorView) {
   }, [roomId]);
 
   useEffect(() => {
+    const initialConnection = window.setTimeout(() => {
+      if (!navigator.onLine) setConnection("OFFLINE");
+    }, 0);
     const supabase = getSupabaseBrowserClient();
     const channel = supabase
       .channel(`room-signals:${roomId}`)
@@ -82,6 +81,7 @@ export function useActorProjection(roomId: string, initialView?: ActorView) {
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     return () => {
+      window.clearTimeout(initialConnection);
       window.clearInterval(poll);
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("online", onOnline);

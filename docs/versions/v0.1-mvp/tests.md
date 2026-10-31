@@ -207,3 +207,25 @@ evidence until repaired.
   DNS/TLS, and required GitHub checks are confirmed by a human operator.
 - A synthetic production smoke reaches create → claim → generation → gameplay
   → fallback → reveal while rollback remains available.
+
+## 12. Automated multi-actor journey evidence
+
+`tests/e2e/multi-actor-journeys.spec.ts` runs two production-server journeys
+through public HTTP and browser surfaces only:
+
+- a 4-player, 30-minute, murderer-aware room with duplicate names, initial
+  claims, player-device reconnect, host recovery, private-description matrix,
+  generation/lock, early suspicion, Early Verdict, all final cases, scoring,
+  reveal, completion, case file, and exact 30-day expiry;
+- a 12-player, 120-minute, murderer-unaware room with duplicate and Unicode
+  Indian names, three murderers, two accomplices, actor-separated dossiers,
+  hidden murderer faction, the same endgame, and completed-room expiry.
+
+Every Game Master and player uses a separate Playwright browser context and
+anonymous session. The suite asserts that replaced principals lose access,
+raw descriptions never enter projections, players receive no canonical
+solution before reveal, the Game Master receives the full locked truth, and
+the rendered Game Master/player surfaces hydrate without browser errors. Story
+generation traverses the real worker and atomic database lock using a strict
+loopback Responses API substitute; no direct database fixture mutation is used
+by the journeys.

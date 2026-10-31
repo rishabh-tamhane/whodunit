@@ -74,13 +74,18 @@ npm run db:start
 npm run db:reset
 npm run db:test
 npm run test:integration
+npx playwright install chromium
+npm run test:e2e
 ```
 
 `npm run db:verify` is the clean-worker gate. It starts the local stack,
 replays migrations and the deterministic seed, runs pgTAP, starts the Next.js
-development server on an available loopback port, and runs real HTTP and local
-Auth smoke tests. In CI it also removes the local stack and volumes on exit;
-locally, run `npm run db:stop` when finished.
+server on available loopback ports, and runs real HTTP, local Auth, and isolated
+4/12-player browser journeys. The browser journeys build and run the production
+Next.js server against a deterministic loopback OpenAI substitute; they never
+use a real API key or mutate test state behind the product APIs. In CI the gate
+also removes the local stack and volumes on exit; locally, run
+`npm run db:stop` when finished.
 
 ## Continuous integration
 

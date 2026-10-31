@@ -151,7 +151,7 @@ export function createStoryFixture(
       durationMinutes,
       roundCount: roundIds.length,
     },
-    scoringProfileVersion: "scoring-v1",
+    scoringProfileVersion: "score-v1",
     murdererAware,
     victim: {
       id: id(2),
@@ -266,6 +266,7 @@ export function createStoryFixture(
     story,
     context: {
       configuredPlayerIds: playerIds,
+      scoringProfileVersion: story.scoringProfileVersion,
       durationMinutes,
       roundCount: roundIds.length,
       murdererCount: counts.murderer,

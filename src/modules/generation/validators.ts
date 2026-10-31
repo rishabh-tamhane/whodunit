@@ -25,6 +25,7 @@ export type StoryDiagnostic = Readonly<{
 
 export type StoryValidationContext = Readonly<{
   configuredPlayerIds: readonly string[];
+  scoringProfileVersion: string;
   durationMinutes: 30 | 45 | 60 | 90 | 120;
   roundCount: number;
   murdererCount: number;
@@ -465,6 +466,15 @@ export function validateStoryPackage(
     );
   const story = parsed.data;
   const diagnostics: StoryDiagnostic[] = [];
+  if (story.scoringProfileVersion !== context.scoringProfileVersion)
+    diagnostics.push(
+      diagnostic(
+        "STRUCTURE",
+        [story.storyId],
+        "The story scoring profile does not match the configured room profile.",
+        `Use scoringProfileVersion ${context.scoringProfileVersion}.`,
+      ),
+    );
   const configured = [...context.configuredPlayerIds];
   const characters = story.characters.map((item) => item.playerId);
   const dossiers = story.dossiers.map((item) => item.playerId);

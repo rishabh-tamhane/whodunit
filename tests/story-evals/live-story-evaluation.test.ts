@@ -46,6 +46,7 @@ function validationContext(
 ): StoryValidationContext {
   return {
     configuredPlayerIds: snapshot.players.map((player) => player.playerId),
+    scoringProfileVersion: snapshot.configuration.scoringProfileVersion,
     durationMinutes: snapshot.configuration.durationMinutes,
     roundCount: snapshot.configuration.roundCount,
     murdererCount: snapshot.configuration.murdererCount,

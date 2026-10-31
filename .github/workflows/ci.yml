@@ -59,7 +59,7 @@ jobs:
   database:
     name: Database smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     env:
       CI: "true"
       SUPABASE_TELEMETRY_DISABLED: "1"
@@ -78,6 +78,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Chromium for actor journeys
+        run: npx playwright install --with-deps chromium
 
       - name: Verify migrations, database tests, and API integration
         run: npm run db:verify

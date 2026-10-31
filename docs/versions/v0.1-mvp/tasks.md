@@ -1187,7 +1187,7 @@ and production smoke tests are complete.
     only canonical approved intervention effects can release; early suspicions
     neither eliminate a player nor auto-confirm an identity.
 
-- [ ] **QA-06 — Complete end-to-end multi-actor journeys**
+- [x] **QA-06 — Complete end-to-end multi-actor journeys**
   - **Depends on:** APP-03, REL-04, REL-05.
   - **Deliverable:** Isolated browser-context journeys for 4- and 12-player
     rooms covering duplicate names, claims, reconnect, host recovery, both
