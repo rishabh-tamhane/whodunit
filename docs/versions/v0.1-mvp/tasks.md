@@ -319,7 +319,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** Duplicate receipts and invalid event sequences fail,
     content-free signals contain no actor data, and every record is room-scoped.
 
-- [ ] **DB-06 — Add gameplay runtime tables**
+- [x] **DB-06 — Add gameplay runtime tables**
   - **Depends on:** DB-04, DB-05.
   - **Deliverable:** Mission state, evidence and consequence release state,
     intervention requests/previews/releases, accomplice revelation state, and
