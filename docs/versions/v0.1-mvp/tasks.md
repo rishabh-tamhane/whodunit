@@ -311,7 +311,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** There is at most one non-terminal generation job and one
     locked canonical story per room.
 
-- [ ] **DB-05 — Add command and synchronization infrastructure tables**
+- [x] **DB-05 — Add command and synchronization infrastructure tables**
   - **Depends on:** DB-02, DB-04.
   - **Deliverable:** Append-only room events, command receipts, webhook
     receipts, content-free room signals, presence heartbeats, state versions,
