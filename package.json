@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:local": "node scripts/run-local-dev.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",

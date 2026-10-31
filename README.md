@@ -20,15 +20,28 @@ The foundation preserves the product's core boundaries:
 
 Requirements: Node.js 24 and npm 11.
 
+For the simplest local setup, start Docker Desktop, create an ignored
+`.env.local` beside `package.json` containing only your OpenAI key, then run:
+
 ```sh
-cp .env.example .env.local
 npm install
-npm run dev
+npm run dev:local
 ```
 
-Replace every placeholder in `.env.local` before starting the server. Runtime
-configuration is validated at server startup; missing or malformed values stop
-the process with a non-secret error message.
+```dotenv
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+`dev:local` starts the committed local Supabase stack, discovers its local URL
+and keys without printing them, and starts Whodunit at
+`http://127.0.0.1:3000`. Next.js loads the OpenAI key from `.env.local`; the
+launcher never reads or prints it. Press Ctrl+C to stop Next.js and run
+`npm run db:stop` when finished.
+
+For a manually configured or hosted environment, copy `.env.example` and
+replace every placeholder before starting `npm run dev`. Runtime configuration
+is validated at server startup; missing or malformed values stop the process
+with a non-secret error message.
 
 `APP_ENV`, `NEXT_PUBLIC_APP_ENV`, and `SERVER_CREDENTIAL_SCOPE` must agree.
 Local, preview, staging, and production use separate Supabase projects and
