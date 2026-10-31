@@ -294,7 +294,7 @@ table access cannot bypass application commands or projections.
     player slot and at most one active player slot per auth principal in a
     room, and invalid cross-room references fail.
 
-- [ ] **DB-03 — Enforce dedicated Game Master identity**
+- [x] **DB-03 — Enforce dedicated Game Master identity**
   - **Depends on:** DB-02.
   - **Deliverable:** Host-tenure constraints, one open tenure per room,
     room/current-host equality checks, permanent former-host exclusion from
