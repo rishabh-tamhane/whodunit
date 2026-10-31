@@ -226,6 +226,9 @@ are ready for feature work.
     database tests, application tests, and production build.
   - **Done when:** Required checks run on every pull request and failures block
     merging.
+  - **Current hobby status (2026-10-30):** The committed CI workflow runs the
+    application and database jobs. Repository branch protection is intentionally
+    deferred, so the strict done condition remains open.
 
 - [x] **UX-01 — Map the two-actor experience**
   - **Depends on:** M0-01.
@@ -1127,6 +1130,10 @@ problems without logging story secrets or player-authored private content.
     and preview isolation.
   - **Done when:** A production-like smoke deployment passes without any
     production credential being available to preview/local environments.
+  - **Current hobby status (2026-10-30):** Vercel, the public Cloudflare
+    hostname, Supabase, migrations, anonymous Auth, daily Cron, and the non-AI
+    public smoke are live. Preview isolation and the OpenAI webhook remain open;
+    see `production-infrastructure-checklist.md`.
 
 - [ ] **OPS-05 — Document backup, rotation, recovery, and rollback**
   - **Depends on:** OPS-04, REL-01, REL-05.
@@ -1135,6 +1142,8 @@ problems without logging story secrets or player-authored private content.
     rollback procedures.
   - **Done when:** Staging drills meet the agreed recovery targets and evidence
     is attached to the launch checklist.
+  - **Current hobby status (2026-10-30):** Procedures are documented. A separate
+    staging project and formal restore/rollback drills are deliberately deferred.
 
 ## 13. Milestone 10 — Verification, Playtesting, and Launch
 
@@ -1227,6 +1236,9 @@ and production smoke tests are complete.
     against the accepted baseline for quality, safety, latency, and cost.
   - **Done when:** gpt-6.1-sol passes the production threshold and gpt-6-astra
     escalation is enabled only if separately approved by the same process.
+  - **Current hobby decision:** Do not run the paid 18-case evaluation. Use one
+    low-cost smoke generation and observed friend-group playtests for v0.1;
+    revisit a fixed-corpus gate only if the project grows.
 
 - [ ] **PLAY-01 — Run moderated 4-player playtests**
   - **Depends on:** QA-06, QA-08.
@@ -1269,6 +1281,9 @@ and production smoke tests are complete.
   - **Done when:** Create room, claim, generation, GameMasterView, one gameplay
     command, intervention fallback, reveal, and telemetry pass in production;
     rollback remains available.
+  - **Current hobby status (2026-10-30):** Deployment, DNS, health, anonymous
+    auth, profiles, migrations, and DRAFT-room creation pass. Generation through
+    reveal is still waiting on the controlled OpenAI and human gameplay smoke.
 
 - [ ] **LAUNCH-04 — Monitor the initial release**
   - **Depends on:** LAUNCH-03.

@@ -7,11 +7,14 @@ player-authored content.
 ## Deployment shape
 
 - Next.js runs on Vercel in `bom1`.
-- Supabase Postgres, Auth, and Realtime run in Mumbai (`ap-south-1`).
-- Cloudflare manages DNS and TLS. Workers are not required for the MVP.
-- Preview, local, and production use different Supabase projects and secrets.
-  Environment validation refuses a production project from a non-production
-  deployment.
+- Supabase Postgres, Auth, and Realtime run in Seoul (`ap-northeast-2`) in the
+  single free project used by this friends-only MVP.
+- Cloudflare manages DNS. The record is DNS-only and Vercel manages TLS;
+  Workers and Cloudflare proxying are not required for the MVP.
+- The hobby deployment does not maintain separate staging infrastructure.
+  Preview deployments must not be used for destructive tests or real games.
+  Separate preview data and credentials are a future upgrade if the project
+  outgrows a private friends-only release.
 - The server-only OpenAI key, webhook secret, Supabase service-role key,
   recovery pepper, safety-identifier HMAC secret, and Cron secret live only in
   encrypted Vercel environment variables. They never use a `NEXT_PUBLIC_`
@@ -113,7 +116,9 @@ not database/provider payloads.
 
 1. Create a replacement in the owning provider; do not paste it into tickets or
    chat.
-2. Update the production-only Vercel secret and redeploy.
+2. Update the encrypted Vercel secret and redeploy. If the same value is scoped
+   to Preview, assume preview deployments can use it too and avoid sharing
+   preview URLs.
 3. For webhook rotation, update the OpenAI endpoint and Vercel secret together,
    then send one signed test event. The official OpenAI webhook helper verifies
    the raw body, signature, and timestamp; the database deduplicates the durable
@@ -122,11 +127,12 @@ not database/provider payloads.
 
 ### Database backup/restore
 
-1. Confirm the Supabase managed backup/PITR is healthy before release.
-2. Restore into a separate staging project, never over the live project.
-3. Apply the repository migration head and run `CI=true npm run db:verify`.
-4. Compare content-free row counts/checksums, then obtain incident-owner
-   approval before any production cutover.
+The free hobby setup does not claim a tested managed-backup or PITR guarantee.
+The repository migrations, deterministic seed, and local verification harness
+are the current recovery baseline. Before relying on the game for anything
+beyond a private party, verify the current Supabase backup entitlement and run
+a restore into a separate project. Never restore experimentally over the live
+project.
 
 ### Migration failure
 
@@ -150,16 +156,18 @@ the forward database schema, run health/auth/projection/command smokes, and
 record the rollback deployment ID and resolution evidence. Database rollback
 is not coupled to application rollback.
 
-## Production activation checklist (human-owned)
+## Hobby activation checklist
 
-- Create production Supabase in Mumbai and confirm backups/PITR.
-- Create Vercel production project in `bom1`; configure production-only secrets,
-  Cron, spend alerts, and preview isolation.
-- Configure Cloudflare DNS/TLS and the application domain.
-- Register the final HTTPS OpenAI webhook URL and store its signing secret.
-- Configure Cloudflare Turnstile/challenge escalation for sustained abusive
-  join/claim/recovery traffic, matching the application's 429 escalation
-  signal, and verify both an ordinary retry and a challenged abusive path.
-- Require the GitHub checks `Application checks` and `Database smoke`.
-- Run staging recovery, rotation, cleanup, webhook, provider-outage, and
-  deployment-rollback drills; attach evidence to the release checklist.
+- [x] Deploy the application to Vercel Hobby in `bom1`.
+- [x] Apply the committed migrations to Supabase and enable anonymous Auth.
+- [x] Configure Cloudflare DNS and the public application hostname.
+- [x] Verify public health, anonymous auth, setup profiles, and DRAFT-room
+      creation without logging secrets or player data.
+- [ ] Register and verify the final HTTPS OpenAI webhook, or document a tested
+      polling-only generation decision.
+- [ ] Run one low-cost generation smoke and one real-device party flow.
+- [ ] Check the first scheduled daily maintenance result.
+
+Formal staging drills, branch protection, managed restore exercises, and
+Cloudflare challenge rules remain sensible upgrades if this stops being a
+friends-only game.
