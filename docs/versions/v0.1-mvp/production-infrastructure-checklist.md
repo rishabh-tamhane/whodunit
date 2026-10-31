@@ -24,7 +24,7 @@ production Supabase project or production-only server credentials.
 - [ ] Import the GitHub repository without exposing secrets to forked preview
       builds.
 - [ ] Use Node 24 from `.nvmrc`, region `bom1`, and the committed
-      `vercel.json` ten-minute maintenance Cron.
+      `vercel.json` once-daily Hobby-compatible maintenance Cron.
 - [ ] Configure all values from `.env.example`; only
       `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and
       `NEXT_PUBLIC_APP_ENV` may use `NEXT_PUBLIC_`.

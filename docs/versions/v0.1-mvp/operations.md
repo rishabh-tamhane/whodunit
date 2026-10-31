@@ -16,9 +16,12 @@ player-authored content.
   recovery pepper, safety-identifier HMAC secret, and Cron secret live only in
   encrypted Vercel environment variables. They never use a `NEXT_PUBLIC_`
   prefix.
-- `/api/internal/cron/maintenance` runs every ten minutes with Vercel's
-  `CRON_SECRET`. It reconciles at most ten stale generation jobs, purges due
-  generation inputs, and deletes at most 25 expired rooms per execution.
+- `/api/internal/cron/maintenance` runs once daily at 05:00 UTC with Vercel's
+  `CRON_SECRET`, which is compatible with the Vercel Hobby plan. It reconciles
+  at most ten stale generation jobs, purges due generation inputs, and deletes
+  at most 25 expired rooms per execution. OpenAI webhooks remain the normal
+  generation-completion path; daily maintenance is the fallback and retention
+  sweep for this friends-only deployment.
 - The application enforces durable one-minute IP, principal, and room budgets.
   Discovery, claim, and recovery denials include
   `X-Whodunit-Abuse-Action: turnstile-challenge`; the production Cloudflare
@@ -68,7 +71,7 @@ not database/provider payloads.
 | Stale command | HTTP 409, authoritative refetch, explicit retry; idempotency key prevents duplicates | Diagnose only if conflict alert fires |
 | Revoked/replaced player | Projection returns forbidden and player is sent back to Join/Reconnect | Game Master approves one replacement binding |
 | Old Game Master after recovery | Old principal cannot fetch or mutate; recovered session receives full GM view | Use current recovery credential only |
-| Generation timeout/webhook loss | Durable phase is reconciled after 15 minutes; exhausted recovery returns safely to LOBBY | Run maintenance; inspect provider status |
+| Generation timeout/webhook loss | Durable phase remains safely retryable; the Hobby deployment's daily maintenance sweep recovers it, or the operator can invoke maintenance sooner | Run maintenance; inspect provider status |
 | Live intervention timeout/refusal | Prepared canonical fallback is staged; GM still approves before release | No emergency action needed |
 | Accusation intake closed during save | Failed draft/save is visible; refresh shows submitted/closed state; no mutation is implied | GM may wait before closing; never reopen frozen inputs |
 | Database/provider outage after ambiguous command | Client refetches before offering retry; receipt replays the original result | Restore dependency, then run representative command smoke |
