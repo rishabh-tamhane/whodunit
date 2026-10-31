@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { parseJsonBody } from "@/lib/api/route.server";
+import {
+  apiError,
+  getRequestCorrelationId,
+  parseJsonBody,
+} from "@/lib/api/route.server";
 
 const Schema = z.strictObject({ action: z.string() });
 
@@ -55,6 +59,26 @@ describe("request boundary defenses", () => {
     expect(result).toMatchObject({
       success: true,
       data: { action: "ADVANCE" },
+    });
+  });
+
+  it("accepts only UUID request correlation IDs", async () => {
+    const trustedId = crypto.randomUUID();
+    const trusted = new Request("https://game.example/api/v1/health", {
+      headers: { "x-request-id": trustedId },
+    });
+    const untrusted = new Request("https://game.example/api/v1/health", {
+      headers: { "x-request-id": "room-code-or-private-text" },
+    });
+
+    expect(getRequestCorrelationId(trusted)).toBe(trustedId);
+    expect(getRequestCorrelationId(untrusted)).not.toBe(
+      "room-code-or-private-text",
+    );
+    await expect(
+      apiError(untrusted, 500, "INTERNAL_ERROR", "Safe").json(),
+    ).resolves.toMatchObject({
+      error: { requestId: getRequestCorrelationId(untrusted) },
     });
   });
 });

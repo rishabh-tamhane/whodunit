@@ -33,6 +33,7 @@ function webhookRequest(body: string, headers: Record<string, string> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.rpc.mockResolvedValue({ data: null, error: null });
 });
 
 describe("OpenAI webhook trust boundary", () => {
@@ -72,7 +73,10 @@ describe("OpenAI webhook trust boundary", () => {
         message: "Invalid webhook signature.",
       },
     });
-    expect(mocks.rpc).not.toHaveBeenCalled();
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      "record_operational_event",
+      expect.objectContaining({ event_type: "WEBHOOK_REJECTED" }),
+    );
   });
 
   it("deduplicates by durable webhook-id and does not schedule a replay", async () => {
@@ -109,14 +113,21 @@ describe("OpenAI webhook trust boundary", () => {
 
   it("acknowledges a fresh delivery quickly and schedules durable work after the response", async () => {
     const jobId = crypto.randomUUID();
+    const flowCorrelationId = crypto.randomUUID();
     mocks.unwrap.mockResolvedValueOnce({
       id: "evt-payload",
       type: "response.completed",
       data: { id: "resp-2" },
     });
-    mocks.rpc.mockResolvedValueOnce({
-      data: { known: true, duplicate: false, jobId },
-      error: null,
+    mocks.rpc.mockImplementation(async (name: string) => {
+      if (name === "record_generation_webhook")
+        return {
+          data: { known: true, duplicate: false, jobId },
+          error: null,
+        };
+      if (name === "resolve_ai_call_correlation")
+        return { data: flowCorrelationId, error: null };
+      return { data: null, error: null };
     });
     const response = await POST(
       webhookRequest(
@@ -130,6 +141,6 @@ describe("OpenAI webhook trust boundary", () => {
       (() => Promise<void>) | undefined;
     expect(scheduled).toBeTypeOf("function");
     await scheduled?.();
-    expect(mocks.advance).toHaveBeenCalledWith(jobId);
+    expect(mocks.advance).toHaveBeenCalledWith(jobId, flowCorrelationId);
   });
 });

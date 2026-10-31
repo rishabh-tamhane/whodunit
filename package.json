@@ -24,6 +24,8 @@
     "format:check": "prettier --check .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "test:story-evals": "vitest run tests/unit/story-evaluation.test.ts",
+    "eval:story:live": "node --env-file-if-exists=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.story-evals.config.ts",
     "test:integration": "node scripts/run-integration-tests.mjs",
     "test:watch": "vitest",
     "check": "npm run format:check && npm run lint && npm run check:boundaries && npm run scan:secrets && npm run typecheck && npm test && npm run build"

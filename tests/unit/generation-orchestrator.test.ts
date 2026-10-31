@@ -88,6 +88,15 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.rpc.mockImplementation(async (name: string) => {
     if (name === "claim_generation_job") return { data: claim(), error: null };
+    if (name === "reserve_ai_call")
+      return {
+        data: {
+          allowed: true,
+          reservationId: crypto.randomUUID(),
+          reservedCostMicrousd: 340_000,
+        },
+        error: null,
+      };
     return { data: {}, error: null };
   });
 });
@@ -154,6 +163,15 @@ describe("durable generation orchestration", () => {
       if (name === "claim_generation_job")
         return {
           data: claim({ story: "resp-durable-1" }),
+          error: null,
+        };
+      if (name === "reserve_ai_call")
+        return {
+          data: {
+            allowed: true,
+            reservationId: crypto.randomUUID(),
+            reservedCostMicrousd: 340_000,
+          },
           error: null,
         };
       return { data: {}, error: null };

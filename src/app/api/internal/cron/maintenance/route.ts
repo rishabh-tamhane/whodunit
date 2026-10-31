@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   let recoveredCount = 0;
   for (const jobId of recovery.recoverableJobIds ?? []) {
     try {
-      await advanceGenerationJob(jobId);
+      await advanceGenerationJob(jobId, correlationId);
       recoveredCount += 1;
     } catch {
       // The durable job remains safely retryable or transitions to FAILED.
@@ -67,6 +67,12 @@ export async function GET(request: Request) {
       remainingCount: cleanupResult.remainingEligible ?? 0,
     },
   });
+  const alerts = await callSupabaseAdminRpc("evaluate_operational_alerts");
+  if (alerts.error)
+    return noStoreJson(
+      { error: "alert evaluation unavailable" },
+      { status: 503 },
+    );
   return noStoreJson({
     correlationId,
     recoveredCount,
@@ -74,5 +80,6 @@ export async function GET(request: Request) {
     purgedCount: Number(purged.data ?? 0),
     deletedCount: cleanupResult.deletedCount ?? 0,
     remainingEligible: cleanupResult.remainingEligible ?? 0,
+    alerts: alerts.data,
   });
 }

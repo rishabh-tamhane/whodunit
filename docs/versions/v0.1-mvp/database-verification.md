@@ -34,6 +34,8 @@ It starts the disposable local Supabase Docker stack, replays every forward migr
 | END-01–07 | `20261030190000_endgame_commands.sql` | `0200_endgame_commands.sql` |
 | SEC/REL retention | `20261030200000_security_retention_operations.sql` | `0210_security_retention_operations.sql` |
 | GAM-03 failure receipt | `20261030210000_gameplay_failure_receipt.sql` | `0170_generation_pipeline.sql` full journey |
+| OPS-01/OPS-03 model-call budgets | `20261030220000_operational_budgets.sql` | `0220_operational_budgets.sql` |
+| OPS-01/OPS-02 alert evaluation | `20261030230000_operational_alerts.sql` | `0230_operational_alerts.sql` |
 
 `0001_harness_smoke.sql` separately proves that local Auth, Postgres, and migration history exist before domain tests run.
 

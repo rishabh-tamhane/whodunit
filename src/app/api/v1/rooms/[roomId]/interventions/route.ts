@@ -8,6 +8,7 @@ import {
 import {
   apiError,
   databaseError,
+  getRequestCorrelationId,
   noStoreJson,
   parseJsonBody,
   requireUser,
@@ -19,6 +20,12 @@ import {
   type InterventionProviderResult,
 } from "@/modules/interventions/provider";
 import { getInterventionProvider } from "@/modules/interventions/provider.server";
+import {
+  reserveModelCall,
+  settleModelCall,
+} from "@/modules/operations/model-budget.server";
+import { estimateModelCostMicrousd } from "@/modules/operations/model-cost";
+import { recordOperationalEvent } from "@/modules/operations/telemetry.server";
 
 export const dynamic = "force-dynamic";
 
@@ -58,19 +65,51 @@ export async function POST(
 
   let providerResult: InterventionProviderResult | undefined;
   let failureCode: string | undefined;
+  const correlationId = getRequestCorrelationId(request);
+  const modelId = getModelPolicy().intervention;
+  const reservation = await reserveModelCall({
+    roomId: roomId.data,
+    correlationId,
+    callKind: "INTERVENTION",
+    modelId,
+  });
   const attemptStartedAt = performance.now();
-  try {
-    providerResult = await getInterventionProvider().select({
-      roomId: roomId.data,
-      modelId: getModelPolicy().intervention,
-      context: requestState.data.context,
-    });
-  } catch (error) {
-    failureCode =
-      error instanceof InterventionProviderError
-        ? error.code
-        : "PROVIDER_UNAVAILABLE";
+  if (!reservation.allowed) {
+    failureCode = "BUDGET_EXHAUSTED";
+  } else {
+    try {
+      providerResult = await getInterventionProvider().select({
+        roomId: roomId.data,
+        modelId,
+        context: requestState.data.context,
+      });
+      await settleModelCall({
+        reservation,
+        modelId: providerResult.modelId,
+        inputTokens: providerResult.inputTokens,
+        outputTokens: providerResult.outputTokens,
+        providerResponseId: providerResult.providerResponseId,
+        status: "COMPLETED",
+      });
+    } catch (error) {
+      failureCode =
+        error instanceof InterventionProviderError
+          ? error.code
+          : "PROVIDER_UNAVAILABLE";
+      await settleModelCall({
+        reservation,
+        modelId,
+        inputTokens: 0,
+        outputTokens: 0,
+        providerResponseId: null,
+        status: "FAILED",
+        conservativelyChargeReservation: true,
+      });
+    }
   }
+  const attemptLatencyMs =
+    providerResult?.latencyMs ??
+    Math.round(performance.now() - attemptStartedAt);
   const staged = await supabase.rpc("stage_intervention_preview", {
     target_room_id: roomId.data,
     target_request_id: requestState.data.requestId,
@@ -85,9 +124,7 @@ export async function POST(
     provider_response_id: providerResult?.providerResponseId ?? null,
     attempt_input_tokens: providerResult?.inputTokens ?? 0,
     attempt_output_tokens: providerResult?.outputTokens ?? 0,
-    attempt_latency_ms:
-      providerResult?.latencyMs ??
-      Math.round(performance.now() - attemptStartedAt),
+    attempt_latency_ms: attemptLatencyMs,
     provider_failure_code: failureCode ?? null,
   });
   if (staged.error) return databaseError(request, staged.error);
@@ -99,5 +136,32 @@ export async function POST(
       "INTERNAL_ERROR",
       "The intervention preview is unavailable.",
     );
+  await recordOperationalEvent({
+    correlationId,
+    eventType: providerResult
+      ? "INTERVENTION_MODEL_COMPLETED"
+      : "INTERVENTION_FALLBACK_STAGED",
+    severity: providerResult ? "INFO" : "WARNING",
+    routeCode: "INTERVENTION_REQUEST",
+    roomId: roomId.data,
+    durationMs: attemptLatencyMs,
+    statusCode: 201,
+    errorCode: failureCode ?? null,
+    metadata: {
+      source: "INTERVENTION",
+      fallback: !providerResult,
+      inputTokens: providerResult?.inputTokens ?? 0,
+      outputTokens: providerResult?.outputTokens ?? 0,
+      latencyMs: attemptLatencyMs,
+      estimatedCostMicrousd: providerResult
+        ? estimateModelCostMicrousd(
+            providerResult.modelId,
+            providerResult.inputTokens,
+            providerResult.outputTokens,
+          )
+        : 0,
+      ...(!reservation.allowed ? { budgetReason: reservation.reason } : {}),
+    },
+  });
   return noStoreJson(preview.data, { status: 201 });
 }

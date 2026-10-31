@@ -1096,7 +1096,7 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** The approved policy is enforced idempotently and active room
     principals are never deleted prematurely.
 
-- [ ] **OPS-01 — Add correlation-aware observability**
+- [x] **OPS-01 — Add correlation-aware observability**
   - **Depends on:** GAM-01, GEN-05, INT-04, END-07, SEC-03.
   - **Deliverable:** Sanitized correlation IDs, structured operational events,
     latency/error/conflict/fallback/cleanup metrics, and traces without private
@@ -1104,7 +1104,7 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** One room flow can be diagnosed across app, database,
     provider, webhook, and Cron without exposing its story or player text.
 
-- [ ] **OPS-02 — Configure alerts and runbooks**
+- [x] **OPS-02 — Configure alerts and runbooks**
   - **Depends on:** OPS-01, REL-01, REL-05, REL-06.
   - **Deliverable:** Alerts for generation failure/stalls, intervention
     fallback rate, webhook errors, command conflicts, purge/deletion backlog,
@@ -1112,7 +1112,7 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** Each alert has threshold, owner, severity, diagnostic steps,
     safe remediation, and resolution test.
 
-- [ ] **OPS-03 — Enforce cost and capacity budgets**
+- [x] **OPS-03 — Enforce cost and capacity budgets**
   - **Depends on:** OPS-01, M0-08.
   - **Deliverable:** Per-generation and per-intervention token/cost tracking,
     attempt caps, room limits, concurrency controls, spend alerts, and

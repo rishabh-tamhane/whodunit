@@ -7,6 +7,7 @@ import {
 import {
   apiError,
   databaseError,
+  getRequestCorrelationId,
   noStoreJson,
   parseJsonBody,
   requireUser,
@@ -54,7 +55,10 @@ export async function POST(
     );
   if (!started.data.replayed && started.data.status === "PENDING") {
     try {
-      await advanceGenerationJob(started.data.jobId);
+      await advanceGenerationJob(
+        started.data.jobId,
+        getRequestCorrelationId(request),
+      );
     } catch {
       /* Durable status exposes the normalized worker failure. */
     }
@@ -79,7 +83,10 @@ export async function GET(
   let view = GenerationStatusViewSchema.safeParse(result.data);
   if (view.success && view.data.job?.status === "RUNNING") {
     try {
-      await advanceGenerationJob(view.data.job.jobId);
+      await advanceGenerationJob(
+        view.data.job.jobId,
+        getRequestCorrelationId(request),
+      );
     } catch {
       /* Status remains the source of truth. */
     }

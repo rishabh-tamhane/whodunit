@@ -159,6 +159,14 @@ Local synthetic measurements establish regressions. Staging provider and
 regional measurements are release evidence; local model placeholders cannot
 approve production latency or cost.
 
+The clean-worker integration suite includes a dependency-free local regression
+smoke with 120 concurrent warmed HTTP reads and ten concurrently created rooms.
+It enforces the ordinary local read/command budgets and catches gross
+serialization, pool, or route regressions. This is intentionally not the
+release sign-off: QA-07 still requires three warmed staging runs with real
+12-player projections, Realtime fan-out, database lock contention, cleanup
+batches, and configured model latency/cost.
+
 ## 9. Accessibility and device matrix
 
 Automated checks cover axe violations, semantic labels, focusable controls,

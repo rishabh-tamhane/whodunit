@@ -1,13 +1,26 @@
 import "server-only";
 
 import type { SupabaseClient, User } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
 
 import type { ApiErrorCode } from "@/contracts/api/error";
 import { callSupabaseAdminRpc } from "@/lib/supabase/admin";
+import { recordOperationalEvent } from "@/modules/operations/telemetry.server";
 
 const MAX_JSON_BODY_BYTES = 64 * 1024;
+const requestCorrelationIds = new WeakMap<Request, string>();
+
+export function getRequestCorrelationId(request: Request): string {
+  const existing = requestCorrelationIds.get(request);
+  if (existing) return existing;
+  const supplied = request.headers.get("x-request-id");
+  const correlationId = z.string().uuid().safeParse(supplied).success
+    ? supplied!
+    : crypto.randomUUID();
+  requestCorrelationIds.set(request, correlationId);
+  return correlationId;
+}
 
 function requestOriginAllowed(request: Request): boolean {
   if (request.headers.get("sec-fetch-site") === "cross-site") return false;
@@ -37,6 +50,14 @@ function normalizedRoute(request: Request): string {
       ":id",
     )
     .slice(0, 200);
+}
+
+function requestRoomId(request: Request): string | null {
+  return (
+    new URL(request.url).pathname.match(
+      /\/rooms\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?:\/|$)/i,
+    )?.[1] ?? null
+  );
 }
 
 function requestIp(request: Request): string {
@@ -96,7 +117,7 @@ export function apiError(
       error: {
         code,
         message,
-        requestId: request.headers.get("x-request-id") ?? crypto.randomUUID(),
+        requestId: getRequestCorrelationId(request),
         ...(fieldErrors === undefined ? {} : { fieldErrors }),
       },
     },
@@ -213,6 +234,16 @@ export async function requireUser(
   }
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) {
+    await recordOperationalEvent({
+      correlationId: getRequestCorrelationId(request),
+      eventType: "AUTHENTICATION_DENIED",
+      severity: "WARNING",
+      routeCode: normalizedRoute(request),
+      roomId: requestRoomId(request),
+      statusCode: 401,
+      errorCode: "AUTHENTICATION_REQUIRED",
+      metadata: { source: "AUTH" },
+    });
     return {
       success: false,
       response: apiError(
@@ -224,9 +255,7 @@ export async function requireUser(
     };
   }
   const route = normalizedRoute(request);
-  const pathRoomId = new URL(request.url).pathname.match(
-    /\/rooms\/([0-9a-f-]{36})(?:\/|$)/i,
-  )?.[1];
+  const pathRoomId = requestRoomId(request);
   const budgets = await Promise.all([
     consumeBudget("IP_ROUTE", `${requestIp(request)}|${route}`, 90),
     consumeBudget("PRINCIPAL_ROUTE", `${data.user.id}|${route}`, 120),
@@ -235,6 +264,16 @@ export async function requireUser(
       : []),
   ]);
   if (budgets.some((budget) => budget === undefined)) {
+    await recordOperationalEvent({
+      correlationId: getRequestCorrelationId(request),
+      eventType: "RATE_LIMIT_UNAVAILABLE",
+      severity: "ERROR",
+      routeCode: route,
+      roomId: pathRoomId,
+      statusCode: 503,
+      errorCode: "SERVICE_UNAVAILABLE",
+      metadata: { source: "RATE_LIMIT" },
+    });
     return {
       success: false,
       response: apiError(
@@ -247,6 +286,16 @@ export async function requireUser(
   }
   const denied = budgets.find((budget) => budget && !budget.allowed);
   if (denied) {
+    await recordOperationalEvent({
+      correlationId: getRequestCorrelationId(request),
+      eventType: "RATE_LIMIT_DENIED",
+      severity: "WARNING",
+      routeCode: route,
+      roomId: pathRoomId,
+      statusCode: 429,
+      errorCode: "RATE_LIMITED",
+      metadata: { source: "RATE_LIMIT", count: 1 },
+    });
     return {
       success: false,
       response: rateLimitResponse(request, denied.retryAfterSeconds),
@@ -270,6 +319,18 @@ export function databaseError(
     status: 500,
     code: "INTERNAL_ERROR" as const,
   };
+  after(async () => {
+    await recordOperationalEvent({
+      correlationId: getRequestCorrelationId(request),
+      eventType: mapped.status === 409 ? "COMMAND_CONFLICT" : "DATABASE_ERROR",
+      severity: mapped.status >= 500 ? "ERROR" : "WARNING",
+      routeCode: normalizedRoute(request),
+      roomId: requestRoomId(request),
+      statusCode: mapped.status,
+      errorCode: error.code ?? mapped.code,
+      metadata: { source: "DATABASE", count: 1 },
+    });
+  });
   return apiError(
     request,
     mapped.status,

@@ -1,4 +1,5 @@
 import type { StoryPackage } from "@/contracts/story/package";
+import type { GenerationSnapshot } from "@/modules/generation/snapshot";
 import type { StoryValidationContext } from "@/modules/generation/validators";
 
 const names = [
@@ -284,3 +285,38 @@ export const STORY_EVALUATION_CORPUS = (
   createStoryFixture(count, true),
   createStoryFixture(count, false),
 ]);
+
+export function createGenerationSnapshotFixture(
+  playerCount: keyof typeof profile,
+  murdererAware: boolean,
+): GenerationSnapshot {
+  const fixture = createStoryFixture(playerCount, murdererAware);
+  const story = fixture.story;
+  return {
+    snapshotVersion: "generation-snapshot-v1",
+    roomId: id(9_000 + playerCount + (murdererAware ? 100 : 0)),
+    stateVersion: "1",
+    capturedAt: "2026-10-30T12:00:00.000Z",
+    configuration: {
+      durationProfileVersion: "duration-v1",
+      durationMinutes: story.durationProfile.durationMinutes,
+      roundCount: story.durationProfile.roundCount,
+      scoringProfileVersion: story.scoringProfileVersion,
+      murdererCount: story.solution.murdererPlayerIds.length,
+      accompliceCount: story.solution.accomplicePlayerIds.length,
+      innocentCount: story.solution.innocentPlayerIds.length,
+      murdererAware,
+    },
+    players: story.characters.map((character, index) => ({
+      playerId: character.playerId,
+      displayName: character.displayName,
+      costume: character.costume,
+      hostBackground: `Player ${index + 1} enjoys collaborative fictional puzzles and inclusive party games.`,
+    })),
+    descriptionResponses: story.characters.map((character, index) => ({
+      subjectPlayerId: character.playerId,
+      responseStatus: "SUBMITTED" as const,
+      descriptionText: `Private eval description ${index + 1}: calm, observant, and fond of harmless wordplay.`,
+    })),
+  };
+}
