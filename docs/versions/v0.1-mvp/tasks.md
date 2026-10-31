@@ -351,7 +351,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** Mutation attempts fail in database tests regardless of API
     path or role.
 
-- [ ] **DB-10 — Implement identity authorization helpers and RLS**
+- [x] **DB-10 — Implement identity authorization helpers and RLS**
   - **Depends on:** DB-03.
   - **Deliverable:** Authenticated-principal helpers, current-Game-Master and
     active-player checks, safe room-code lookup RPC, RLS, and command-function
@@ -359,7 +359,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** Direct writes are denied, discovery returns safe lobby data
     only, and cross-room reads/writes fail.
 
-- [ ] **DB-11 — Implement story and runtime projections**
+- [x] **DB-11 — Implement story and runtime projections**
   - **Depends on:** DB-06, DB-07, DB-08, DB-10.
   - **Deliverable:** Membership-scoped player projection functions,
     full get_game_master_view SECURITY DEFINER RPC, reveal/postgame projections,

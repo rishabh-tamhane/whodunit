@@ -821,12 +821,12 @@ select ok(
 
 select ok(
   not pg_catalog.has_table_privilege('anon', 'public.room_signals', 'SELECT')
-  and not pg_catalog.has_table_privilege(
+  and pg_catalog.has_table_privilege(
     'authenticated',
     'public.room_signals',
     'SELECT'
   ),
-  'room signals remain closed until DB-11 adds channel authorization'
+  'room signals are selectable only through DB-11 actor-scoped RLS'
 );
 
 select ok(
