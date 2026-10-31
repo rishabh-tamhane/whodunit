@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ApiErrorEnvelopeSchema,
   DomainCommandMetadataSchema,
+  FinalCaseSchema,
   MembershipStatusSchema,
   MissionStatusSchema,
   RoomIdSchema,
@@ -71,5 +72,26 @@ describe("domain contracts", () => {
         code: "STALE_STATE_VERSION",
       },
     });
+  });
+
+  it("requires a complete structured final case", () => {
+    expect(
+      FinalCaseSchema.parse({
+        murdererPlayerIds: [UUID],
+        accomplicePlayerIds: [],
+        motive: "A fictional rivalry",
+        method: "A stage illusion",
+        evidenceIds: [],
+      }),
+    ).toMatchObject({ murdererPlayerIds: [UUID] });
+    expect(() =>
+      FinalCaseSchema.parse({
+        murdererPlayerIds: [],
+        accomplicePlayerIds: [],
+        motive: "",
+        method: "",
+        evidenceIds: [],
+      }),
+    ).toThrow();
   });
 });

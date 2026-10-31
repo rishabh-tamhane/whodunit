@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   EvidenceCard,
+  Input,
   MissionCard,
   StatusBadge,
   Timeline,
@@ -60,6 +61,7 @@ export function GameMasterDashboard({
   const [interventionPreview, setInterventionPreview] = useState<
     ReturnType<typeof InterventionPreviewResultSchema.parse> | undefined
   >();
+  const [caseFileQuery, setCaseFileQuery] = useState("");
   if (!view || view.actor !== "GAME_MASTER" || !view.story) return null;
   const activeView = view;
   const story = StoryPackageSchema.safeParse(view.story.package);
@@ -75,6 +77,24 @@ export function GameMasterDashboard({
   const interventionRequests = records(view.runtime?.interventionRequests);
   const interventionPreviews = records(view.runtime?.interventionPreviews);
   const interventionReleases = records(view.runtime?.interventionReleases);
+  const submittedAccusations = records(view.submittedState?.finalAccusations);
+  const scoringSnapshot =
+    typeof view.results?.scoringSnapshot === "object" &&
+    view.results.scoringSnapshot !== null
+      ? (view.results.scoringSnapshot as Record<string, unknown>)
+      : undefined;
+  const caseFile =
+    typeof view.results?.caseFile === "object" && view.results.caseFile !== null
+      ? (view.results.caseFile as Record<string, unknown>)
+      : undefined;
+  const missingAccusationPlayers = view.players.filter(
+    (player) =>
+      !submittedAccusations.some(
+        (accusation) =>
+          stringValue(accusation, "player_id", "playerId") ===
+          stringValue(player, "id"),
+      ),
+  );
   const missionStatus = new Map(
     runtimeMissions.map((item) => [
       String(item.mission_spec_id),
@@ -171,6 +191,34 @@ export function GameMasterDashboard({
       setBusy(false);
     }
   }
+  async function closeAccusations() {
+    const missingNames = missingAccusationPlayers.map((player) =>
+      stringValue(player, "displayName"),
+    );
+    const submittedCount = submittedAccusations.length;
+    if (
+      !window.confirm(
+        missingNames.length > 0
+          ? `Close final-case intake? Missing: ${missingNames.join(", ")}. Each receives zero points and no faction vote.`
+          : "Every player submitted. Close intake and calculate deterministic results?",
+      )
+    )
+      return;
+    if (
+      submittedCount === 0 &&
+      !window.confirm(
+        "No player submitted a final case. Confirm again: all players receive zero points and the murderer faction wins.",
+      )
+    )
+      return;
+    await command("accusations/close", {
+      ...metadata(),
+      confirmedMissingPlayerIds: missingAccusationPlayers.map((player) =>
+        stringValue(player, "id"),
+      ),
+      confirmZeroSubmissions: submittedCount === 0,
+    });
+  }
   function metadata() {
     return {
       expectedStateVersion: activeView.room.stateVersion,
@@ -209,22 +257,139 @@ export function GameMasterDashboard({
             </Button>
           ) : null}
           {view.room.status === "IN_PROGRESS" ? (
-            <Button
-              disabled={busy}
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Advance the round? Unfinished missions will be classified and waived.",
+            <>
+              <Button
+                disabled={busy}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Advance the round? Unfinished missions will be classified and waived.",
+                    )
                   )
-                )
-                  void command("commands/advance", metadata());
-              }}
-            >
-              Advance round
-            </Button>
+                    void command("commands/advance", metadata());
+                }}
+              >
+                Advance round
+              </Button>
+              <Button
+                disabled={busy}
+                variant="danger"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Call Early Verdict? Investigation ends now, unfinished missions are waived, and all players move to final cases. No correctness signal is sent.",
+                    )
+                  )
+                    void command("early-verdict", metadata());
+                }}
+              >
+                Call Early Verdict
+              </Button>
+            </>
           ) : null}
         </div>
       </Card>
+      {view.room.status === "FINAL_ACCUSATIONS" || scoringSnapshot ? (
+        <Card elevated>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-black">Final-case intake</h2>
+              <p className="mt-2 text-sm text-stone-400">
+                {submittedAccusations.length}/{view.players.length} submitted.
+                Drafts remain invisible; submitted snapshots are shown below.
+              </p>
+            </div>
+            {scoringSnapshot ? (
+              <StatusBadge tone="success">INPUTS FROZEN · SCORED</StatusBadge>
+            ) : (
+              <StatusBadge tone="warning">INTAKE OPEN</StatusBadge>
+            )}
+          </div>
+          <div className="mt-4 grid gap-3">
+            {view.players.map((player) => {
+              const playerId = stringValue(player, "id");
+              const accusation = submittedAccusations.find(
+                (item) =>
+                  stringValue(item, "player_id", "playerId") === playerId,
+              );
+              return (
+                <Alert
+                  key={playerId}
+                  title={stringValue(player, "displayName")}
+                  tone={accusation ? "success" : "neutral"}
+                >
+                  {accusation ? (
+                    <pre className="max-h-52 overflow-auto whitespace-pre-wrap text-xs">
+                      {JSON.stringify(
+                        accusation.structured_case_json ?? accusation.case,
+                        null,
+                        2,
+                      )}
+                    </pre>
+                  ) : (
+                    "Waiting for submission. No draft content is visible."
+                  )}
+                </Alert>
+              );
+            })}
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {!scoringSnapshot && view.room.status === "FINAL_ACCUSATIONS" ? (
+              <Button disabled={busy} onClick={() => void closeAccusations()}>
+                Close intake and score
+              </Button>
+            ) : null}
+            {scoringSnapshot && view.room.status === "FINAL_ACCUSATIONS" ? (
+              <Button
+                disabled={busy}
+                onClick={() => void command("reveal/publish", metadata())}
+              >
+                Publish shared reveal
+              </Button>
+            ) : null}
+            {view.room.status === "REVEAL" ? (
+              <Button
+                disabled={busy}
+                onClick={() => void command("completion", metadata())}
+              >
+                Finalize case file and complete
+              </Button>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
+      {caseFile ? (
+        <Card elevated>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-black">Complete case file</h2>
+              <p className="mt-2 text-sm text-stone-400">
+                Immutable postgame record. Scheduled deletion:{" "}
+                {String(view.room.expiresAt ?? "—")}.
+              </p>
+            </div>
+            <StatusBadge tone="success">COMPLETED</StatusBadge>
+          </div>
+          <Input
+            className="mt-5"
+            aria-label="Search case file"
+            placeholder="Search the case file"
+            value={caseFileQuery}
+            onChange={(event) => setCaseFileQuery(event.target.value)}
+          />
+          {JSON.stringify(caseFile.content ?? {})
+            .toLocaleLowerCase()
+            .includes(caseFileQuery.toLocaleLowerCase()) ? (
+            <pre className="mt-4 max-h-[40rem] overflow-auto whitespace-pre-wrap text-xs text-stone-300">
+              {JSON.stringify(caseFile.content ?? {}, null, 2)}
+            </pre>
+          ) : (
+            <Alert className="mt-4" title="No case-file match">
+              Try a player, clue, mission, or event name.
+            </Alert>
+          )}
+        </Card>
+      ) : null}
       <Alert title="Canonical solution — Game Master only" tone="violet">
         <p>
           <strong>Murderer(s):</strong>{" "}

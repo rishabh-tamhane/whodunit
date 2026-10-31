@@ -15,6 +15,8 @@ import {
   Textarea,
 } from "@/components/ui";
 import {
+  EndgameCommandResultSchema,
+  FinalAccusationSaveResultSchema,
   GameplayCommandResultSchema,
   NotebookSaveResultSchema,
   PlayerViewSchema,
@@ -34,6 +36,14 @@ type Surface =
   | "notebook"
   | "accuse"
   | "reveal";
+function records(input: unknown): Record<string, unknown>[] {
+  return Array.isArray(input)
+    ? input.filter(
+        (item): item is Record<string, unknown> =>
+          typeof item === "object" && item !== null,
+      )
+    : [];
+}
 function value(
   record: Record<string, unknown> | undefined | null,
   key: string,
@@ -92,6 +102,46 @@ export function PlayerGameShell({
     notebookSuspects(note),
   );
   const [evidenceIds, setEvidenceIds] = useState<string[]>([]);
+  const initialAccusation = initialView.finalAccusation;
+  const initialFinalCase =
+    typeof initialAccusation?.case === "object" &&
+    initialAccusation.case !== null
+      ? (initialAccusation.case as Record<string, unknown>)
+      : {};
+  const initialIds = (key: string) =>
+    Array.isArray(initialFinalCase[key])
+      ? initialFinalCase[key].filter(
+          (item): item is string => typeof item === "string",
+        )
+      : [];
+  const [finalMurderers, setFinalMurderers] = useState<string[]>(() =>
+    initialIds("murdererPlayerIds"),
+  );
+  const [finalAccomplices, setFinalAccomplices] = useState<string[]>(() =>
+    initialIds("accomplicePlayerIds"),
+  );
+  const [finalEvidence, setFinalEvidence] = useState<string[]>(() =>
+    initialIds("evidenceIds"),
+  );
+  const [finalMotive, setFinalMotive] = useState(() =>
+    value(initialFinalCase, "motive"),
+  );
+  const [finalMethod, setFinalMethod] = useState(() =>
+    value(initialFinalCase, "method"),
+  );
+  const [finalExplanation, setFinalExplanation] = useState(() =>
+    value(initialAccusation, "explanation"),
+  );
+  const [finalRevision, setFinalRevision] = useState(() =>
+    Number(initialAccusation?.revision ?? 0),
+  );
+  const [finalDirty, setFinalDirty] = useState(false);
+  const [finalSaveState, setFinalSaveState] = useState<
+    "SAVED" | "SAVING" | "FAILED"
+  >("SAVED");
+  const [finalSubmitted, setFinalSubmitted] = useState(
+    value(initialAccusation, "status") === "SUBMITTED",
+  );
   const [initiallyVisibleEvidence] = useState(
     () =>
       new Set((initialView.evidence ?? []).map((item) => value(item, "id"))),
@@ -126,6 +176,60 @@ export function PlayerGameShell({
     }, 900);
     return () => window.clearTimeout(timer);
   }, [dirty, notes, saveNotebook]);
+  const saveFinalCase = useCallback(async (): Promise<boolean> => {
+    if (
+      finalSubmitted ||
+      player?.room.status !== "FINAL_ACCUSATIONS" ||
+      finalMurderers.length === 0 ||
+      !finalMotive.trim() ||
+      !finalMethod.trim()
+    )
+      return false;
+    setFinalSaveState("SAVING");
+    try {
+      const result = await requestJson({
+        url: `/api/v1/rooms/${roomId}/accusations`,
+        method: "PUT",
+        input: {
+          expectedRevision: finalRevision,
+          structuredCase: {
+            murdererPlayerIds: finalMurderers,
+            accomplicePlayerIds: finalAccomplices,
+            motive: finalMotive,
+            method: finalMethod,
+            evidenceIds: finalEvidence,
+          },
+          explanationText: finalExplanation,
+        },
+        outputSchema: FinalAccusationSaveResultSchema,
+      });
+      setFinalRevision(result.revision);
+      setFinalDirty(false);
+      setFinalSaveState("SAVED");
+      return true;
+    } catch {
+      setFinalSaveState("FAILED");
+      return false;
+    }
+  }, [
+    finalAccomplices,
+    finalEvidence,
+    finalExplanation,
+    finalMethod,
+    finalMotive,
+    finalMurderers,
+    finalRevision,
+    finalSubmitted,
+    player?.room.status,
+    roomId,
+  ]);
+  useEffect(() => {
+    if (!finalDirty || finalSubmitted) return;
+    const timer = window.setTimeout(() => {
+      void saveFinalCase();
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [finalDirty, finalSubmitted, saveFinalCase]);
   const missions = player?.missions ?? [];
   const evidence = player?.evidence ?? [];
   const currentMissions = missions.filter(
@@ -139,6 +243,19 @@ export function PlayerGameShell({
       </Alert>
     );
   const activePlayer = player;
+  const reveal =
+    typeof player.reveal === "object" && player.reveal !== null
+      ? (player.reveal as Record<string, unknown>)
+      : undefined;
+  const revealSolution =
+    typeof reveal?.solution === "object" && reveal.solution !== null
+      ? (reveal.solution as Record<string, unknown>)
+      : undefined;
+  const canonicalSolution =
+    typeof revealSolution?.canonicalSolution === "object" &&
+    revealSolution.canonicalSolution !== null
+      ? (revealSolution.canonicalSolution as Record<string, unknown>)
+      : undefined;
   async function run(action: () => Promise<unknown>) {
     setBusy(true);
     setActionError(undefined);
@@ -209,6 +326,28 @@ export function PlayerGameShell({
       }),
     );
     setTheoryText("");
+  }
+  async function submitFinalCase() {
+    if (
+      !window.confirm(
+        "Submit this final case? It becomes immutable and immediately visible to the Game Master.",
+      )
+    )
+      return;
+    const saved = finalDirty ? await saveFinalCase() : true;
+    if (!saved) return;
+    await run(() =>
+      requestJson({
+        url: `/api/v1/rooms/${roomId}/accusations`,
+        method: "POST",
+        input: {
+          expectedStateVersion: activePlayer.room.stateVersion,
+          idempotencyKey: createIdempotencyKey(),
+        },
+        outputSchema: EndgameCommandResultSchema,
+      }),
+    );
+    setFinalSubmitted(true);
   }
   const nav: [Surface, string][] = [
     ["dossier", "Dossier"],
@@ -560,24 +699,283 @@ export function PlayerGameShell({
         </>
       ) : null}
       {surface === "accuse" ? (
-        <Alert title="Final case">
-          Final accusation drafting and immutable submission become available
-          when the Game Master opens final-case intake.
-        </Alert>
+        player.room.status !== "FINAL_ACCUSATIONS" && !finalSubmitted ? (
+          <Alert title="Final-case intake is not open">
+            The Game Master opens final accusations after the investigation or
+            by calling an Early Verdict.
+          </Alert>
+        ) : (
+          <Card elevated>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black">Your final case</h2>
+                <p className="mt-2 text-sm text-stone-400">
+                  Drafts are owner-only. Submission is permanent and becomes
+                  visible to the Game Master immediately.
+                </p>
+              </div>
+              <StatusBadge
+                tone={
+                  finalSubmitted
+                    ? "success"
+                    : finalSaveState === "FAILED"
+                      ? "danger"
+                      : finalSaveState === "SAVING"
+                        ? "warning"
+                        : "neutral"
+                }
+              >
+                {finalSubmitted ? "SUBMITTED" : finalSaveState}
+              </StatusBadge>
+            </div>
+            <div className="mt-6 grid gap-6">
+              <div>
+                <h3 className="font-black">Suspected murderer(s)</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {player.lobby.map((item) => {
+                    const id = value(item, "playerId");
+                    const active = finalMurderers.includes(id);
+                    return (
+                      <Button
+                        key={`murderer-${id}`}
+                        disabled={finalSubmitted}
+                        variant={active ? "danger" : "secondary"}
+                        onClick={() => {
+                          setFinalMurderers((current) =>
+                            active
+                              ? current.filter((candidate) => candidate !== id)
+                              : [...current, id],
+                          );
+                          if (!active)
+                            setFinalAccomplices((current) =>
+                              current.filter((candidate) => candidate !== id),
+                            );
+                          setFinalDirty(true);
+                          setFinalSaveState("SAVING");
+                        }}
+                      >
+                        {value(item, "displayName")}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <h3 className="font-black">Suspected accomplice(s)</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {player.lobby.map((item) => {
+                    const id = value(item, "playerId");
+                    const active = finalAccomplices.includes(id);
+                    return (
+                      <Button
+                        key={`accomplice-${id}`}
+                        disabled={finalSubmitted}
+                        variant={active ? "primary" : "secondary"}
+                        onClick={() => {
+                          setFinalAccomplices((current) =>
+                            active
+                              ? current.filter((candidate) => candidate !== id)
+                              : [...current, id],
+                          );
+                          if (!active)
+                            setFinalMurderers((current) =>
+                              current.filter((candidate) => candidate !== id),
+                            );
+                          setFinalDirty(true);
+                          setFinalSaveState("SAVING");
+                        }}
+                      >
+                        {value(item, "displayName")}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+              <label className="grid gap-2 text-sm font-bold">
+                Motive
+                <Textarea
+                  disabled={finalSubmitted}
+                  value={finalMotive}
+                  maxLength={1000}
+                  onChange={(event) => {
+                    setFinalMotive(event.target.value);
+                    setFinalDirty(true);
+                    setFinalSaveState("SAVING");
+                  }}
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-bold">
+                Method
+                <Textarea
+                  disabled={finalSubmitted}
+                  value={finalMethod}
+                  maxLength={1000}
+                  onChange={(event) => {
+                    setFinalMethod(event.target.value);
+                    setFinalDirty(true);
+                    setFinalSaveState("SAVING");
+                  }}
+                />
+              </label>
+              <div>
+                <h3 className="font-black">Supporting released evidence</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {evidence.map((item) => {
+                    const id = value(item, "id");
+                    const active = finalEvidence.includes(id);
+                    const content =
+                      typeof item.content === "object" && item.content !== null
+                        ? (item.content as Record<string, unknown>)
+                        : {};
+                    return (
+                      <Button
+                        key={`final-evidence-${id}`}
+                        disabled={finalSubmitted}
+                        variant={active ? "primary" : "ghost"}
+                        onClick={() => {
+                          setFinalEvidence((current) =>
+                            active
+                              ? current.filter((candidate) => candidate !== id)
+                              : [...current, id],
+                          );
+                          setFinalDirty(true);
+                          setFinalSaveState("SAVING");
+                        }}
+                      >
+                        {value(content, "title") || value(item, "kind")}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+              <label className="grid gap-2 text-sm font-bold">
+                Explanation (optional)
+                <Textarea
+                  disabled={finalSubmitted}
+                  value={finalExplanation}
+                  maxLength={4000}
+                  onChange={(event) => {
+                    setFinalExplanation(event.target.value);
+                    setFinalDirty(true);
+                    setFinalSaveState("SAVING");
+                  }}
+                />
+              </label>
+              {finalSaveState === "FAILED" ? (
+                <Alert title="Final-case draft not saved" tone="danger">
+                  Your last server copy is still safe. Retry before submitting.
+                </Alert>
+              ) : null}
+              {!finalSubmitted ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    disabled={busy || finalSaveState === "SAVING"}
+                    onClick={() => void saveFinalCase()}
+                  >
+                    Save draft
+                  </Button>
+                  <Button
+                    disabled={
+                      busy ||
+                      finalMurderers.length === 0 ||
+                      !finalMotive.trim() ||
+                      !finalMethod.trim() ||
+                      finalSaveState === "FAILED"
+                    }
+                    onClick={() => void submitFinalCase()}
+                  >
+                    Review and submit permanently
+                  </Button>
+                </div>
+              ) : (
+                <Alert title="Final case submitted" tone="success">
+                  This snapshot is immutable, visible to the Game Master, and
+                  safely retained if this device reconnects.
+                </Alert>
+              )}
+            </div>
+          </Card>
+        )
       ) : null}
       {surface === "reveal" ? (
-        <Card>
-          <h2 className="text-xl font-black">Shared reveal</h2>
-          {player.reveal ? (
-            <pre className="mt-4 whitespace-pre-wrap text-sm">
-              {JSON.stringify(player.reveal, null, 2)}
-            </pre>
-          ) : (
-            <p className="mt-3 text-stone-400">
-              The Game Master has not published the reveal.
-            </p>
-          )}
-        </Card>
+        reveal ? (
+          <div className="grid gap-5">
+            <Card elevated>
+              <p className="text-sm font-bold text-orange-300">The truth</p>
+              <h2 className="mt-1 text-3xl font-black">
+                {records(reveal.sections)[0]
+                  ? value(records(reveal.sections)[0], "title") ||
+                    "The mystery revealed"
+                  : "The mystery revealed"}
+              </h2>
+              <p className="mt-4 text-stone-300">
+                <strong>Motive:</strong> {value(canonicalSolution, "motive")}
+              </p>
+              <p className="mt-2 text-stone-300">
+                <strong>Method:</strong> {value(canonicalSolution, "method")}
+              </p>
+            </Card>
+            {records(reveal.sections).map((section) => {
+              const content =
+                typeof section.content === "object" && section.content !== null
+                  ? (section.content as Record<string, unknown>)
+                  : {};
+              return (
+                <Card key={value(section, "id")}>
+                  <StatusBadge tone="violet">
+                    {value(section, "kind")}
+                  </StatusBadge>
+                  <h3 className="mt-3 text-xl font-black">
+                    {value(content, "title")}
+                  </h3>
+                  <p className="mt-2 leading-7 text-stone-300">
+                    {value(content, "body") || JSON.stringify(content)}
+                  </p>
+                </Card>
+              );
+            })}
+            <Card>
+              <h2 className="text-xl font-black">Results</h2>
+              <div className="mt-4 grid gap-3">
+                {records(reveal.playerScores).map((score) => (
+                  <Alert
+                    key={value(score, "playerId")}
+                    title={`${value(score, "displayName")} · ${String(score.totalPoints ?? 0)} points`}
+                    tone={
+                      value(score, "playerId") === player.self.playerId
+                        ? "orange"
+                        : "neutral"
+                    }
+                  >
+                    Rank {String(score.rank ?? "—")}.{" "}
+                    {value(score, "explanation")}
+                  </Alert>
+                ))}
+              </div>
+            </Card>
+            {records(reveal.awards).length > 0 ? (
+              <Card>
+                <h2 className="text-xl font-black">Awards</h2>
+                <div className="mt-4 grid gap-3">
+                  {records(reveal.awards).map((award) => (
+                    <Alert
+                      key={value(award, "code")}
+                      title={`${value(award, "title")} · ${value(award, "displayName")}`}
+                      tone="success"
+                    >
+                      {value(award, "description")}
+                    </Alert>
+                  ))}
+                </div>
+              </Card>
+            ) : null}
+          </div>
+        ) : (
+          <Alert title="Shared reveal is locked">
+            The Game Master has not published the canonical truth and results.
+          </Alert>
+        )
       ) : null}
       {actionError || error ? (
         <Alert title="Update did not complete" tone="danger">

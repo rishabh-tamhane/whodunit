@@ -8,6 +8,8 @@ const ActorRoomSchema = z.object({
   status: z.string(),
   stateVersion: z.union([z.string(), z.number()]).transform(String),
   currentRoundId: z.string().uuid().nullable().optional(),
+  completedAt: z.string().nullable().optional(),
+  expiresAt: z.string().nullable().optional(),
 });
 
 export const GameMasterViewSchema = z.object({
@@ -135,4 +137,38 @@ export const InterventionPreviewResultSchema = z.object({
     .optional(),
   failureCode: z.string().optional(),
   stateVersion: z.string(),
+});
+
+export const FinalCaseSchema = z.strictObject({
+  murdererPlayerIds: z.array(z.string().uuid()).min(1).max(12),
+  accomplicePlayerIds: z.array(z.string().uuid()).max(11),
+  motive: z.string().trim().min(1).max(1_000),
+  method: z.string().trim().min(1).max(1_000),
+  evidenceIds: z.array(z.string().uuid()).max(50),
+});
+export const SaveFinalAccusationInputSchema = z.strictObject({
+  expectedRevision: z.number().int().nonnegative(),
+  structuredCase: FinalCaseSchema,
+  explanationText: z.string().max(4_000),
+});
+export const FinalAccusationSaveResultSchema = z.object({
+  accusationId: z.string().uuid(),
+  status: z.enum(["DRAFT", "SUBMITTED"]),
+  revision: z.number().int().nonnegative(),
+  updatedAt: z.string(),
+});
+export const SubmitFinalAccusationInputSchema = DomainCommandMetadataSchema;
+export const CloseFinalAccusationsInputSchema =
+  DomainCommandMetadataSchema.extend({
+    confirmedMissingPlayerIds: z.array(z.string().uuid()).max(12),
+    confirmZeroSubmissions: z.boolean(),
+  });
+export const EndgameCommandResultSchema = GameplayCommandResultSchema.extend({
+  scoringSnapshotId: z.string().uuid().optional(),
+  revealPublicationId: z.string().uuid().optional(),
+  caseFileId: z.string().uuid().optional(),
+  submissionCount: z.number().int().nonnegative().optional(),
+  missingPlayerIds: z.array(z.string().uuid()).optional(),
+  completedAt: z.string().optional(),
+  expiresAt: z.string().optional(),
 });

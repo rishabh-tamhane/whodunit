@@ -413,6 +413,142 @@ select ok(
   'append-only gameplay events contain no notebook or submitted prose'
 );
 
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000003","role":"authenticated"}',
+  true
+);
+select is(
+  public.save_final_accusation(
+    'b2000000-0000-4000-8000-000000000001', 0,
+    '{"murdererPlayerIds":["b3000000-0000-4000-8000-000000000001"],"accomplicePlayerIds":[],"motive":"Fictional rivalry","method":"Stage illusion","evidenceIds":[]}'::jsonb,
+    'Owner-only accusation draft.'
+  ) ->> 'status',
+  'DRAFT',
+  'a player autosaves an owner-only revisioned final case'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
+);
+select ok(
+  public.get_game_master_view('b2000000-0000-4000-8000-000000000001')::text
+    not like '%Owner-only accusation draft%',
+  'the Game Master cannot read an accusation draft'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000003","role":"authenticated"}',
+  true
+);
+select is(
+  public.submit_final_accusation(
+    'b2000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bd000000-0000-4000-8000-000000000001'
+  ) ->> 'status',
+  'SUBMITTED',
+  'submission atomically exposes an immutable final case'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
+);
+select is(
+  pg_catalog.jsonb_array_length(
+    public.get_game_master_view('b2000000-0000-4000-8000-000000000001')
+      #> '{submittedState,finalAccusations}'
+  ),
+  1,
+  'the Game Master sees submitted cases immediately but never drafts'
+);
+select is(
+  public.close_final_accusations(
+    'b2000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bd000000-0000-4000-8000-000000000002',
+    array[
+      'b3000000-0000-4000-8000-000000000001',
+      'b3000000-0000-4000-8000-000000000003',
+      'b3000000-0000-4000-8000-000000000004'
+    ]::uuid[], false
+  ) ->> 'status',
+  'SCORED',
+  'the Game Master confirms every missing player and freezes scoring inputs'
+);
+select is(
+  (select total_points from app_private.player_scores
+    where room_id='b2000000-0000-4000-8000-000000000001'
+      and player_id='b3000000-0000-4000-8000-000000000002'),
+  60,
+  'deterministic scoring awards murderer, full-set, motive, and method points'
+);
+select is(
+  (select won from app_private.faction_results
+    where room_id='b2000000-0000-4000-8000-000000000001'
+      and faction='MURDERER'),
+  true,
+  'one of three innocent votes is not a strict majority, so the murderer wins'
+);
+select is(
+  public.publish_reveal(
+    'b2000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bd000000-0000-4000-8000-000000000003'
+  ) ->> 'status',
+  'REVEAL',
+  'the Game Master publishes the prepared truth and deterministic results'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000003","role":"authenticated"}',
+  true
+);
+select is(
+  public.get_player_view('b2000000-0000-4000-8000-000000000001')
+    #>> '{reveal,solution,canonicalSolution,motive}',
+  'Fictional rivalry',
+  'players receive the same canonical truth only after publication'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
+);
+select is(
+  public.complete_room(
+    'b2000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bd000000-0000-4000-8000-000000000004'
+  ) ->> 'status',
+  'COMPLETED',
+  'completion transaction finalizes the immutable Game Master case file'
+);
+select is(
+  (select expires_at - completed_at from app_private.rooms
+    where id='b2000000-0000-4000-8000-000000000001'),
+  interval '30 days',
+  'completed room expiry is exactly 30 days after completion'
+);
+select ok(
+  (select content_json::text not like '%My revised owner-only notes%'
+      and not pg_catalog.jsonb_path_exists(
+        content_json,
+        '$.submittedFinalAccusations[*] ? (@.status == "DRAFT")'::jsonpath
+      )
+    from app_private.case_files
+    where room_id='b2000000-0000-4000-8000-000000000001'),
+  'the complete case file excludes notebooks and unsubmitted accusation records'
+);
+select ok(
+  (select content_json::text like '%Owner-only accusation draft%'
+    from app_private.case_files
+    where room_id='b2000000-0000-4000-8000-000000000001'),
+  'submitted accusation prose is retained in the complete case file'
+);
+
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select throws_ok(
   pg_catalog.format(

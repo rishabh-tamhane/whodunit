@@ -812,7 +812,7 @@ state without an authorized Game Master command.
   - **Done when:** Player and Game Master views converge after every decision
     and other players cannot see private mission content.
 
-- [ ] **GAM-06 — Harden reconnect during active play**
+- [x] **GAM-06 — Harden reconnect during active play**
   - **Depends on:** IDN-08, APP-02, GAM-04, PLY-03, PLY-05, END-02.
   - **Deliverable:** Authoritative refetch and resume logic for current round,
     dossier, mission, evidence, notebook, theory, and accusation state after
@@ -896,7 +896,7 @@ draft and submit private final cases, deterministic scoring handles all
 approved cases, and the Game Master publishes a reveal and complete case file
 without exposing owner-only drafts or raw inputs.
 
-- [ ] **END-01 — Implement Early Verdict**
+- [x] **END-01 — Implement Early Verdict**
   - **Depends on:** GAM-02, PLY-05.
   - **Deliverable:** Game Master command transitioning an eligible room to final
     accusations and recording the transition plus applicable released-evidence
@@ -905,7 +905,7 @@ without exposing owner-only drafts or raw inputs.
     receive no correctness signal, eligible prior submitted theories remain
     available for deterministic scoring, and the transition is idempotent.
 
-- [ ] **END-02 — Implement accusation draft and submission lifecycle**
+- [x] **END-02 — Implement accusation draft and submission lifecycle**
   - **Depends on:** GAM-01.
   - **Deliverable:** Revisioned owner-only DRAFT saves, immutable SUBMITTED
     transition, immediate Game Master visibility, and submission-state query.
@@ -913,7 +913,7 @@ without exposing owner-only drafts or raw inputs.
     submitted cases cannot change, submissions use command receipts/events/
     signals, and other players see no cases before the reveal policy permits.
 
-- [ ] **PLY-08 — Build final accusation UI**
+- [x] **PLY-08 — Build final accusation UI**
   - **Depends on:** PLY-01, END-02, END-03, UX-02.
   - **Deliverable:** Murderer and accomplice ID sets, motive, method, evidence,
     explanation, autosaved draft, visibility disclosure, review, immutable
@@ -922,7 +922,7 @@ without exposing owner-only drafts or raw inputs.
     save is visible, accidental submission is guarded, and submission becomes
     Game Master-visible immediately.
 
-- [ ] **GM-04 — Build accusation intake controls**
+- [x] **GM-04 — Build accusation intake controls**
   - **Depends on:** GM-01, END-01, END-02, END-03.
   - **Deliverable:** Early Verdict action, submission roster, submitted-case
     inspection, close confirmation, missing-player handling, and transition to
@@ -930,7 +930,7 @@ without exposing owner-only drafts or raw inputs.
   - **Done when:** The Game Master sees no drafts, can inspect every submitted
     final case, and intake follows the approved close policy.
 
-- [ ] **END-03 — Close intake and freeze scoring inputs**
+- [x] **END-03 — Close intake and freeze scoring inputs**
   - **Depends on:** END-02, DB-08, DB-09, M0-05.
   - **Deliverable:** Game Master-authorized close command that applies the
     approved missing-player policy and transactionally freezes submitted final
@@ -939,7 +939,7 @@ without exposing owner-only drafts or raw inputs.
   - **Done when:** Closing prevents later submissions, is idempotent, contains
     no owner-only drafts, and the same frozen input cannot be replaced.
 
-- [ ] **END-04 — Implement deterministic scoring**
+- [x] **END-04 — Implement deterministic scoring**
   - **Depends on:** END-03, DB-13, M0-04, M0-05.
   - **Deliverable:** Multiple-murderer partial credit, full-set bonus,
     accomplice/motive/method/evidence points, deterministic early-deduction
@@ -950,7 +950,7 @@ without exposing owner-only drafts or raw inputs.
     model call, manual theory selection, or Game Master judgment determines
     points; retries cannot change or duplicate finalized results.
 
-- [ ] **END-05 — Implement reveal publication**
+- [x] **END-05 — Implement reveal publication**
   - **Depends on:** END-04, GAM-04, INT-05.
   - **Deliverable:** Game Master-controlled reveal publication using the locked
     prepared ending, results projections, final events, and transition to
@@ -959,7 +959,7 @@ without exposing owner-only drafts or raw inputs.
     publication, close/score/publish state is recoverable and transactionally
     consistent, and repeat publication is harmless.
 
-- [ ] **END-06 — Assemble the Game Master case file**
+- [x] **END-06 — Assemble the Game Master case file**
   - **Depends on:** END-05, GAM-05.
   - **Deliverable:** Complete chronological narrative; every dossier, backstory,
     secret, faction, timeline event, alibi, clue and explanation; all generated
@@ -971,7 +971,7 @@ without exposing owner-only drafts or raw inputs.
     accusation drafts; all retained sections reference the locked package and
     frozen runtime/scoring inputs.
 
-- [ ] **PLY-09 — Build shared reveal and results UI**
+- [x] **PLY-09 — Build shared reveal and results UI**
   - **Depends on:** END-05, UI-01.
   - **Deliverable:** Ordered prepared reveal, culprit/motive/method, clue
     explanations, faction outcomes, personal score breakdown, awards, and
@@ -980,7 +980,7 @@ without exposing owner-only drafts or raw inputs.
     revealed canonical truth and no unrevealed/draft data leaks through
     transitions or page source.
 
-- [ ] **GM-05 — Build the Game Master case-file UI**
+- [x] **GM-05 — Build the Game Master case-file UI**
   - **Depends on:** END-06, END-07, GM-01.
   - **Deliverable:** Searchable postgame narrative, timeline, player outcomes,
     theories, accusations, scores, runtime decisions, expiry warning, and
@@ -988,7 +988,7 @@ without exposing owner-only drafts or raw inputs.
   - **Done when:** It renders all retained case-file fields, preserves privacy
     exclusions, and remains accessible only to the current Game Master.
 
-- [ ] **END-07 — Finalize completion and expiration**
+- [x] **END-07 — Finalize completion and expiration**
   - **Depends on:** END-06.
   - **Deliverable:** Transactional case-file finalization, COMPLETED room
     transition, final event/signal, and expires_at exactly 30 days after
@@ -997,7 +997,7 @@ without exposing owner-only drafts or raw inputs.
     and case file, retries are harmless, and the displayed expiry matches the
     stored deletion deadline.
 
-- [ ] **APP-03 — Integrate complete Game Master and player journeys**
+- [x] **APP-03 — Integrate complete Game Master and player journeys**
   - **Depends on:** IDN-03, IDN-05, IDN-07, IDN-09, IDN-11, IDN-14, GEN-11,
     GM-02, GM-03, GM-04, GM-05, PLY-09, GAM-07, END-07.
   - **Deliverable:** Route-level integration of onboarding, recovery,
