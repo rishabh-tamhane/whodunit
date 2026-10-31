@@ -327,7 +327,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** Cross-room references, duplicate one-time releases, invalid
     mission transitions, and noncanonical effect references fail.
 
-- [ ] **DB-07 — Add player-private and submitted-state tables**
+- [x] **DB-07 — Add player-private and submitted-state tables**
   - **Depends on:** DB-02, DB-05.
   - **Deliverable:** Notebook revisions, suspect drafts, immutable submitted
     theory snapshots, and final-accusation drafts/submissions with optimistic
