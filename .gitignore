@@ -1,0 +1,26 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next
+/out
+
+# testing
+/coverage
+
+# local environment files
+.env
+.env*.local
+
+# deployment
+.vercel
+
+# local Supabase state
+/.supabase/
+/supabase/.branches/
+/supabase/.temp/
+
+# tooling
+*.tsbuildinfo
+.DS_Store
+npm-debug.log*

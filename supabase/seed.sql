@@ -1,0 +1,3 @@
+-- Deterministic seed data will be added with the database foundation tasks.
+-- Intentionally empty at the foundation milestone.
+-- Future deterministic seed rows must use explicit IDs and timestamps.

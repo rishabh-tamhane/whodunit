@@ -181,7 +181,7 @@ A clean checkout builds and tests in CI; server-only dependencies cannot enter
 the client bundle; the actor journeys, privacy copy, and mobile UI primitives
 are ready for feature work.
 
-- [ ] **FND-01 — Scaffold the application**
+- [x] **FND-01 — Scaffold the application**
   - **Depends on:** M0-01.
   - **Deliverable:** Next.js App Router, TypeScript, Tailwind CSS, package
     scripts, and the module boundaries prescribed by technical design section
@@ -189,14 +189,14 @@ are ready for feature work.
   - **Done when:** A clean install, development start, and production build
     succeed.
 
-- [ ] **FND-02 — Configure code-quality tooling**
+- [x] **FND-02 — Configure code-quality tooling**
   - **Depends on:** FND-01.
   - **Deliverable:** Formatting, linting, strict type checking, import-boundary
     rules, and pre-commit or CI checks.
   - **Done when:** The pipeline rejects client imports of service-role,
     recovery-secret, or OpenAI modules.
 
-- [ ] **FND-03 — Add typed environment validation**
+- [x] **FND-03 — Add typed environment validation**
   - **Depends on:** FND-01.
   - **Deliverable:** Validated public/server environment schemas, Supabase
     clients, OpenAI provider configuration, model IDs, webhook secrets, and
@@ -204,7 +204,7 @@ are ready for feature work.
   - **Done when:** Startup fails safely on missing or malformed configuration
     and no server secret appears in a browser bundle.
 
-- [ ] **FND-04 — Define shared domain contracts**
+- [x] **FND-04 — Define shared domain contracts**
   - **Depends on:** FND-01.
   - **Deliverable:** Branded room/player/membership/story IDs; lifecycle,
     membership, mission, and accusation enums; stable error envelope;
@@ -212,7 +212,7 @@ are ready for feature work.
   - **Done when:** Invalid ID mixing and illegal state transitions fail type or
     unit validation.
 
-- [ ] **FND-05 — Establish the local database and test harness**
+- [x] **FND-05 — Establish the local database and test harness**
   - **Depends on:** FND-03, FND-04.
   - **Deliverable:** Local Supabase workflow, reset/migration command, database
     test runner, API integration harness, deterministic clocks, and fixture
@@ -227,7 +227,7 @@ are ready for feature work.
   - **Done when:** Required checks run on every pull request and failures block
     merging.
 
-- [ ] **UX-01 — Map the two-actor experience**
+- [x] **UX-01 — Map the two-actor experience**
   - **Depends on:** M0-01.
   - **Deliverable:** Mobile-first journey and information architecture for the
     Game Master and players across every room state, including recovery,
