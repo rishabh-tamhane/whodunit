@@ -111,4 +111,57 @@ describe("OpenAI intervention provider boundary", () => {
       code: "INVALID_PROVIDER_OUTPUT",
     });
   });
+
+  it("normalizes an incomplete or refused response", async () => {
+    const provider = createOpenAIInterventionProvider(
+      {
+        responses: {
+          create: vi
+            .fn()
+            .mockResolvedValue({ ...response({}), status: "incomplete" }),
+        },
+      } as never,
+      {
+        allowedModelIds: ["gpt-6.1-sol"],
+        safetyIdentifierSecret: "s".repeat(32),
+        timeoutMs: 10_000,
+      },
+    );
+    await expect(
+      provider.select({
+        roomId: crypto.randomUUID(),
+        modelId: "gpt-6.1-sol",
+        context: {},
+      }),
+    ).rejects.toMatchObject<Partial<InterventionProviderError>>({
+      code: "INVALID_PROVIDER_OUTPUT",
+    });
+  });
+
+  it("normalizes a provider timeout without exposing its message", async () => {
+    const provider = createOpenAIInterventionProvider(
+      {
+        responses: {
+          create: vi
+            .fn()
+            .mockRejectedValue(new Error("private timeout detail")),
+        },
+      } as never,
+      {
+        allowedModelIds: ["gpt-6.1-sol"],
+        safetyIdentifierSecret: "s".repeat(32),
+        timeoutMs: 10_000,
+      },
+    );
+    await expect(
+      provider.select({
+        roomId: crypto.randomUUID(),
+        modelId: "gpt-6.1-sol",
+        context: {},
+      }),
+    ).rejects.toMatchObject<Partial<InterventionProviderError>>({
+      code: "PROVIDER_UNAVAILABLE",
+      message: "PROVIDER_UNAVAILABLE",
+    });
+  });
 });

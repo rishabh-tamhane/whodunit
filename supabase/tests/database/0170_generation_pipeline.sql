@@ -95,6 +95,53 @@ select ok(
 );
 
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
+update app_private.story_generation_jobs
+set provider_response_ids_json = '{"story":"resp_generation_test_1"}'::jsonb
+where id = (select (result ->> 'jobId')::uuid from generation_started);
+select is(
+  public.record_generation_webhook(
+    'event-generation-1','resp_generation_test_1','response.completed',
+    pg_catalog.repeat('11',32)
+  ) ->> 'duplicate',
+  'false',
+  'the first signed provider delivery records one durable receipt'
+);
+select is(
+  public.record_generation_webhook(
+    'event-generation-1','resp_generation_test_1','response.completed',
+    pg_catalog.repeat('11',32)
+  ) ->> 'duplicate',
+  'true',
+  'a replayed provider delivery is detected before any work is scheduled'
+);
+select is(
+  (select pg_catalog.count(*)::integer from app_private.webhook_receipts
+    where provider_event_id = 'event-generation-1'),
+  1,
+  'a replay cannot create a second receipt'
+);
+select is(
+  public.record_generation_webhook(
+    'event-generation-unknown','resp_unknown','response.completed',
+    pg_catalog.repeat('22',32)
+  ) ->> 'known',
+  'false',
+  'an unknown provider response is acknowledged without touching a room'
+);
+select is(
+  public.record_generation_webhook(
+    'event-generation-2','resp_generation_test_1','response.failed',
+    pg_catalog.repeat('33',32)
+  ) ->> 'duplicate',
+  'false',
+  'an out-of-order provider event records a receipt for fresh-state reconciliation'
+);
+select is(
+  (select status::text from app_private.story_generation_jobs
+    where id = (select (result ->> 'jobId')::uuid from generation_started)),
+  'PENDING',
+  'webhook receipt order cannot mutate the generation job directly'
+);
 select public.claim_generation_job(
   (select (result ->> 'jobId')::uuid from generation_started),
   'pgTAP-worker'
@@ -127,7 +174,7 @@ select pg_catalog.jsonb_build_object(
   'rounds',(select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('id',id,'sequence',sequence,'title',title,'targetDurationSeconds',seconds,'publicEvent','Fictional event') order by sequence) from round_data),
   'evidence','[]'::jsonb,'evidenceDependencies','[]'::jsonb,
   'consequences',(select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('id',id,'severity',severity,'title','Complication','description','Harmless fictional complication','fictionalOnly',true,'eligibility',pg_catalog.jsonb_build_object('roundIds',pg_catalog.jsonb_build_array('b5000000-0000-4000-8000-000000000001'),'afterFailedMission',true))) from consequence_data),
-  'missions',(select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('id',('ba000000-0000-4000-8000-'||pg_catalog.lpad(((rounds.sequence-1)*4+players.n)::text,12,'0'))::uuid,'roundId',rounds.id,'assignedPlayerId',players.id,'actionKind','ASK_PLAYER','objective','Ask a fictional question','completionRule','Ask it aloud','stakes','A fictional clue','hostConfirmationGuidance','Confirm it was asked','successEffect',null,'failureConsequenceId',null)) from room_players as players cross join round_data as rounds),
+  'missions',(select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('id',('ba000000-0000-4000-8000-'||pg_catalog.lpad(((rounds.sequence-1)*4+players.n)::text,12,'0'))::uuid,'roundId',rounds.id,'assignedPlayerId',players.id,'actionKind','ASK_PLAYER','objective','Ask a fictional question','completionRule','Ask it aloud','stakes','A fictional clue','hostConfirmationGuidance','Confirm it was asked','successEffect',null,'failureConsequenceId','b6000000-0000-4000-8000-000000000001')) from room_players as players cross join round_data as rounds),
   'interventions',pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
     'id','bc000000-0000-4000-8000-000000000001',
     'roundId','b5000000-0000-4000-8000-000000000002',
@@ -141,6 +188,37 @@ select pg_catalog.jsonb_build_object(
   )),
   'accompliceRevelations','[]'::jsonb,'finalReveal','[]'::jsonb
 ) as package;
+
+select throws_ok(
+  pg_catalog.format(
+    'select public.lock_generated_story(%L,%L,%L::jsonb,%L,%L)',
+    (select result ->> 'jobId' from generation_started), 'pgTAP-worker',
+    (
+      select pg_catalog.jsonb_set(
+        package,
+        '{dossiers,1,id}',
+        package #> '{dossiers,0,id}'
+      )::text
+      from generated_story
+    ),
+    pg_catalog.repeat('00',32), pg_catalog.repeat('11',32)
+  ),
+  '23505',
+  'duplicate key value violates unique constraint "dossiers_pkey"',
+  'a materialization constraint failure aborts the atomic story lock'
+);
+select is(
+  (select pg_catalog.count(*)::integer from app_private.canonical_stories
+    where room_id='b2000000-0000-4000-8000-000000000001'),
+  0,
+  'a failed materialization leaves no partial canonical story'
+);
+select is(
+  (select status::text from app_private.rooms
+    where id='b2000000-0000-4000-8000-000000000001'),
+  'GENERATING',
+  'a failed materialization leaves the room recoverable before lock'
+);
 
 select lives_ok(
   pg_catalog.format(
@@ -299,6 +377,33 @@ select is(
   'COMPLETED',
   'only the Game Master adjudicates mission completion'
 );
+select is(
+  public.adjudicate_mission(
+    'b2000000-0000-4000-8000-000000000001',
+    'ba000000-0000-4000-8000-000000000002',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000040','FAIL',null
+  ) ->> 'status',
+  'CONSEQUENCE_PENDING',
+  'a failed mission activates only its eligible canonical consequence'
+);
+select is(
+  public.resolve_canonical_release(
+    'b2000000-0000-4000-8000-000000000001',
+    'b6000000-0000-4000-8000-000000000001',
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000041','CONSEQUENCE','RELEASE'
+  ) ->> 'decision',
+  'RELEASE',
+  'the Game Master releases the prepared fictional consequence'
+);
+select is(
+  (select status::text from app_private.mission_states
+    where room_id='b2000000-0000-4000-8000-000000000001'
+      and mission_spec_id='ba000000-0000-4000-8000-000000000002'),
+  'CONSEQUENCE_RELEASED',
+  'the failed mission records the released consequence exactly once'
+);
 select lives_ok(
   pg_catalog.format(
     'select public.advance_round(%L,%s,%L)',
@@ -324,6 +429,19 @@ select is(
   ) ->> 'correctness',
   null,
   'theory submission never returns a correctness signal'
+);
+select is(
+  (select status::text from app_private.rooms
+    where id='b2000000-0000-4000-8000-000000000001'),
+  'IN_PROGRESS',
+  'an early suspicion cannot end or auto-advance the game'
+);
+select is(
+  (select pg_catalog.count(*)::integer from app_private.room_memberships
+    where room_id='b2000000-0000-4000-8000-000000000001'
+      and status='ACTIVE'),
+  4,
+  'an early suspicion cannot eliminate or revoke any player'
 );
 select set_config(
   'request.jwt.claims',
@@ -371,10 +489,39 @@ select is(
     'b2000000-0000-4000-8000-000000000001',
     ((select result ->> 'requestId' from intervention_requested))::uuid,
     (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
-    'bb000000-0000-4000-8000-000000000009','APPROVE'
+    'bb000000-0000-4000-8000-000000000009','REJECT'
+  ) ->> 'status',
+  'REJECTED',
+  'the Game Master can reject a deterministic timeout fallback'
+);
+create temporary table invalid_ai_intervention_requested as
+select public.request_intervention(
+  'b2000000-0000-4000-8000-000000000001',
+  (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+  'bb000000-0000-4000-8000-000000000080'
+) as result;
+create temporary table invalid_ai_intervention_staged as
+select public.stage_intervention_preview(
+  'b2000000-0000-4000-8000-000000000001',
+  ((select result ->> 'requestId' from invalid_ai_intervention_requested))::uuid,
+  'be000000-0000-4000-8000-000000000001'::uuid,null::uuid,
+  'DIRECT','UNBLOCK_DISCUSSION','gpt-6.1-sol','resp-invalid-candidate',
+  20,10,250,null::text
+) as result;
+select is(
+  (select result ->> 'selectionSource' from invalid_ai_intervention_staged),
+  'PREPARED_FALLBACK',
+  'a model-selected ID outside the fresh canonical allowlist cannot stage AI content'
+);
+select is(
+  public.resolve_intervention(
+    'b2000000-0000-4000-8000-000000000001',
+    ((select result ->> 'requestId' from invalid_ai_intervention_requested))::uuid,
+    (select state_version from app_private.rooms where id='b2000000-0000-4000-8000-000000000001'),
+    'bb000000-0000-4000-8000-000000000081','APPROVE'
   ) ->> 'status',
   'RELEASED',
-  'Game Master approval releases the validated canonical intervention once'
+  'approval releases only the canonical fallback selected by the database'
 );
 select set_config(
   'request.jwt.claims',
@@ -547,6 +694,21 @@ select ok(
     from app_private.case_files
     where room_id='b2000000-0000-4000-8000-000000000001'),
   'submitted accusation prose is retained in the complete case file'
+);
+select ok(
+  public.get_game_master_view('b2000000-0000-4000-8000-000000000001')
+    #> '{results,caseFile,content}' is not null,
+  'the completed Game Master projection includes the finalized case file'
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"b1000000-0000-4000-8000-000000000003","role":"authenticated"}',
+  true
+);
+select ok(
+  not public.get_player_view('b2000000-0000-4000-8000-000000000001')
+    ? 'results',
+  'the completed player projection never receives the Game Master case file'
 );
 
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);

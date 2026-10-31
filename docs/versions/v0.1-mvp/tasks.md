@@ -1041,7 +1041,7 @@ problems without logging story secrets or player-authored private content.
     or provider payloads; recovery fragments never reach access logs, referrers,
     browser history after exchange, analytics, or projections.
 
-- [ ] **SEC-04 — Verify webhook and provider trust boundaries**
+- [x] **SEC-04 — Verify webhook and provider trust boundaries**
   - **Depends on:** GEN-05.
   - **Deliverable:** Raw-body signature verification, timestamp tolerance,
     receipt deduplication, payload size/type checks, and least-privilege
@@ -1064,7 +1064,7 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** Signals contain no game content; missed signals do not affect
     correctness; a former host or revoked player cannot fetch current state.
 
-- [ ] **REL-03 — Audit command and recovery races**
+- [x] **REL-03 — Audit command and recovery races**
   - **Depends on:** IDN-10, GAM-01.
   - **Deliverable:** Deterministic concurrent tests for recovery versus old-host
     command, two recoveries, claim versus recovery, reconnect versus revoke,
@@ -1145,7 +1145,7 @@ the full experience passes at 4 and 12 players on supported devices; security,
 privacy, accessibility, quality, latency, and cost gates pass; staging drills
 and production smoke tests are complete.
 
-- [ ] **QA-01 — Write the versioned master test plan**
+- [x] **QA-01 — Write the versioned master test plan**
   - **Depends on:** M0-09.
   - **Deliverable:** Populate tests.md with the test pyramid, environments,
     fixtures, actor matrix, requirement traceability, release gates, and defect
@@ -1153,7 +1153,7 @@ and production smoke tests are complete.
   - **Done when:** Every requirement and every high-risk invariant has an owner
     and verification method.
 
-- [ ] **QA-02 — Complete database authorization and concurrency suites**
+- [x] **QA-02 — Complete database authorization and concurrency suites**
   - **Depends on:** DB-14, IDN-10, GAM-01, REL-03.
   - **Deliverable:** RLS/RPC, room isolation, current/former host exclusion,
     one-principal/one-player and one-player/one-device constraints, append-only
@@ -1162,7 +1162,7 @@ and production smoke tests are complete.
   - **Done when:** No principal can obtain another actor's data or win an
     unauthorized race.
 
-- [ ] **QA-03 — Complete actor-projection and privacy contract suites**
+- [x] **QA-03 — Complete actor-projection and privacy contract suites**
   - **Depends on:** GEN-08, PLY-05, END-02, END-06.
   - **Deliverable:** Allowlisted snapshots for visitor, pending player, active
     player, current Game Master, former host, reveal, and postgame responses.
@@ -1170,7 +1170,7 @@ and production smoke tests are complete.
     descriptions, credentials, owner-only drafts, and unreleased player secrets
     never appear in the wrong projection.
 
-- [ ] **QA-04 — Complete story/provider integration suites**
+- [x] **QA-04 — Complete story/provider integration suites**
   - **Depends on:** GEN-07, GEN-09, REL-01.
   - **Deliverable:** Refusal, malformed/incomplete output, timeout, webhook
     replay/order, repair, escalation, reconciliation, purge, and lock-rollback
@@ -1178,7 +1178,7 @@ and production smoke tests are complete.
   - **Done when:** No failure case can create partial, mutable, or multiple
     canonical stories.
 
-- [ ] **QA-05 — Complete gameplay and intervention suites**
+- [x] **QA-05 — Complete gameplay and intervention suites**
   - **Depends on:** GAM-02 through GAM-07, INT-05, PLY-03, PLY-05, REL-02.
   - **Deliverable:** State transitions, idempotency, missions, all-success and
     all-failure paths, evidence, consequences, notes, theories, Realtime,

@@ -1,6 +1,6 @@
 begin;
 
-select plan(38);
+select plan(41);
 
 select has_function(
   'public', 'get_game_master_view', array['uuid'],
@@ -422,6 +422,20 @@ select ok(
 );
 
 select is(
+  (select pg_catalog.array_agg(key order by key)
+    from pg_catalog.jsonb_object_keys(
+      public.get_game_master_view(
+        'd1000000-0000-4000-8000-000000000001'
+      )
+    ) as keys(key)),
+  array[
+    'actor','claims','generation','players','readiness','results','room',
+    'runtime','story','submittedState'
+  ]::text[],
+  'the locked Game Master view exposes only its reviewed top-level contract'
+);
+
+select is(
   (select pg_catalog.count(*)::integer from public.room_signals),
   1,
   'the current Game Master can subscribe to content-free signals'
@@ -536,6 +550,21 @@ select ok(
     'Vikram private notebook'
   ) = 0,
   'the player view excludes event private payloads and another notebook'
+);
+
+select is(
+  (select pg_catalog.array_agg(key order by key)
+    from pg_catalog.jsonb_object_keys(
+      public.get_player_view(
+        'd1000000-0000-4000-8000-000000000001'
+      )
+    ) as keys(key)),
+  array[
+    'actor','dossier','events','evidence','finalAccusation','lobby','missions',
+    'notebook','personalRevelations','releasedInterventions','room','self',
+    'submittedTheories'
+  ]::text[],
+  'the active player view exposes only its reviewed pre-reveal contract'
 );
 
 select is(
@@ -678,6 +707,17 @@ select ok(
     'd1000000-0000-4000-8000-000000000001'
   ) -> 'reveal') ? 'caseFile',
   'the shared player reveal excludes the Game Master-only case file'
+);
+
+select is(
+  (select pg_catalog.array_agg(key order by key)
+    from pg_catalog.jsonb_object_keys(
+      public.get_reveal_view(
+        'd1000000-0000-4000-8000-000000000001'
+      )
+    ) as keys(key)),
+  array['reveal','roomId','status']::text[],
+  'the shared reveal exposes only its reviewed top-level contract'
 );
 
 select set_config(

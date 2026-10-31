@@ -61,7 +61,84 @@ select throws_ok(
 insert into auth.users (id) values
   ('c1000000-0000-4000-8000-000000000001'),
   ('c1000000-0000-4000-8000-000000000002'),
-  ('c1000000-0000-4000-8000-000000000003');
+  ('c1000000-0000-4000-8000-000000000003'),
+  ('c1000000-0000-4000-8000-000000000004'),
+  ('c1000000-0000-4000-8000-000000000005');
+insert into app_private.rooms (
+  id, room_code, host_auth_user_id, status, created_at, updated_at
+) values (
+  'c2000000-0000-4000-8000-000000000004','STALEGEN',
+  'c1000000-0000-4000-8000-000000000004','GENERATING',
+  app_private.current_database_time() - interval '3 hours',
+  app_private.current_database_time() - interval '20 minutes'
+), (
+  'c2000000-0000-4000-8000-000000000005','RECOVGEN',
+  'c1000000-0000-4000-8000-000000000005','GENERATING',
+  app_private.current_database_time() - interval '1 hour',
+  app_private.current_database_time() - interval '20 minutes'
+);
+insert into app_private.room_host_principals (room_id, auth_user_id) values
+  ('c2000000-0000-4000-8000-000000000004','c1000000-0000-4000-8000-000000000004'),
+  ('c2000000-0000-4000-8000-000000000005','c1000000-0000-4000-8000-000000000005');
+insert into app_private.story_generation_jobs (
+  id, room_id, idempotency_key, status, phase, input_snapshot_json,
+  attempt_count, model_id, escalation_model_id, prompt_version,
+  story_schema_version, validator_version, created_at, started_at, updated_at,
+  lease_owner, lease_expires_at
+) values (
+  'c3000000-0000-4000-8000-000000000004',
+  'c2000000-0000-4000-8000-000000000004',
+  'c4000000-0000-4000-8000-000000000004','RUNNING','PLAYABLE_CONTENT','{}',
+  3,'gpt-6.1-sol','gpt-6-astra','story-prompt-v1','0.1.0','story-validator-v1',
+  app_private.current_database_time() - interval '3 hours',
+  app_private.current_database_time() - interval '3 hours',
+  app_private.current_database_time() - interval '20 minutes',
+  'dead-worker', app_private.current_database_time() - interval '16 minutes'
+), (
+  'c3000000-0000-4000-8000-000000000005',
+  'c2000000-0000-4000-8000-000000000005',
+  'c4000000-0000-4000-8000-000000000005','RUNNING','PLAYABLE_CONTENT','{}',
+  1,'gpt-6.1-sol','gpt-6-astra','story-prompt-v1','0.1.0','story-validator-v1',
+  app_private.current_database_time() - interval '1 hour',
+  app_private.current_database_time() - interval '1 hour',
+  app_private.current_database_time() - interval '20 minutes',
+  'stale-worker', app_private.current_database_time() - interval '16 minutes'
+);
+create temporary table reconciliation_result as
+select public.reconcile_stale_generation_jobs() as result;
+select is(
+  (select (result ->> 'failedCount')::integer from reconciliation_result),
+  1,
+  'exhausted stale generation fails safely instead of creating a second story'
+);
+select ok(
+  (select result -> 'recoverableJobIds' from reconciliation_result)
+    @> '["c3000000-0000-4000-8000-000000000005"]'::jsonb,
+  'a bounded stale generation checkpoint is returned for provider reconciliation'
+);
+select is(
+  (select status::text from app_private.story_generation_jobs
+    where id='c3000000-0000-4000-8000-000000000004'),
+  'FAILED',
+  'an exhausted stale job reaches one terminal state'
+);
+select is(
+  (select status::text from app_private.rooms
+    where id='c2000000-0000-4000-8000-000000000004'),
+  'LOBBY',
+  'a failed pre-lock room returns to the editable lobby'
+);
+select ok(
+  (select source_purged_at is not null from app_private.story_generation_jobs
+    where id='c3000000-0000-4000-8000-000000000004'),
+  'terminal stale generation purges its private source snapshot'
+);
+select ok(
+  (select status='RUNNING' and lease_owner is null and lease_expires_at is null
+    from app_private.story_generation_jobs
+    where id='c3000000-0000-4000-8000-000000000005'),
+  'a recoverable checkpoint releases its abandoned lease for one new worker'
+);
 insert into app_private.rooms (
   id, room_code, host_auth_user_id, status, created_at, updated_at
 ) values (

@@ -95,4 +95,69 @@ describe("OpenAI story provider boundary", () => {
       Partial<StoryProviderError>
     >({ code: "INVALID_PROVIDER_OUTPUT" });
   });
+
+  it("normalizes a refusal with no schema output as invalid provider output", async () => {
+    const retrieve = vi.fn().mockResolvedValue({
+      ...response(),
+      output_text: "",
+      output: [
+        {
+          type: "message",
+          content: [{ type: "refusal", refusal: "Cannot comply" }],
+        },
+      ],
+    });
+    const provider = createOpenAIStoryProvider(
+      { responses: { create: vi.fn(), retrieve } } as never,
+      {
+        allowedModelIds: ["gpt-6.1-sol"],
+        safetyIdentifierSecret: "s".repeat(32),
+      },
+    );
+    await expect(provider.retrieve("resp_private_123")).rejects.toMatchObject<
+      Partial<StoryProviderError>
+    >({ code: "INVALID_PROVIDER_OUTPUT" });
+  });
+
+  it.each(["failed", "cancelled", "incomplete"])(
+    "maps %s responses to a bounded terminal failure",
+    async (status) => {
+      const retrieve = vi.fn().mockResolvedValue({
+        ...response(),
+        status,
+        output_text: "",
+        error: { code: "provider_terminal" },
+      });
+      const provider = createOpenAIStoryProvider(
+        { responses: { create: vi.fn(), retrieve } } as never,
+        {
+          allowedModelIds: ["gpt-6.1-sol"],
+          safetyIdentifierSecret: "s".repeat(32),
+        },
+      );
+      await expect(
+        provider.retrieve("resp_private_123"),
+      ).resolves.toMatchObject({
+        status: "FAILED",
+        story: null,
+        errorCode: "provider_terminal",
+      });
+    },
+  );
+
+  it("normalizes provider transport errors without leaking their message", async () => {
+    const retrieve = vi
+      .fn()
+      .mockRejectedValue(new Error("private provider response body"));
+    const provider = createOpenAIStoryProvider(
+      { responses: { create: vi.fn(), retrieve } } as never,
+      {
+        allowedModelIds: ["gpt-6.1-sol"],
+        safetyIdentifierSecret: "s".repeat(32),
+      },
+    );
+    await expect(provider.retrieve("resp_private_123")).rejects.toMatchObject<
+      Partial<StoryProviderError>
+    >({ code: "PROVIDER_UNAVAILABLE", message: "PROVIDER_UNAVAILABLE" });
+  });
 });
