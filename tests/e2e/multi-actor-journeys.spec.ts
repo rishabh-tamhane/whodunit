@@ -51,7 +51,7 @@ const names = [
   "Saanvi",
   "Vihaan",
   "Zoya",
-  "ऋतु",
+  "ऋतु चट्टोपाध्याय-श्रीनिवासन 🎃",
 ] as const;
 const costumes = [
   "Pirate",
@@ -72,6 +72,33 @@ function baseUrl(): string {
   const value = process.env.E2E_BASE_URL;
   if (!value) throw new Error("E2E_BASE_URL is required.");
   return value;
+}
+
+async function expectNoHorizontalPageOverflow(
+  page: Awaited<ReturnType<BrowserContext["newPage"]>>,
+) {
+  const metrics = await page.evaluate(() => {
+    const clientWidth = document.documentElement.clientWidth;
+    const offenders = Array.from(document.querySelectorAll("body *"))
+      .filter(
+        (element) => element.getBoundingClientRect().right > clientWidth + 1,
+      )
+      .slice(0, 5)
+      .map((element) => ({
+        className: element.getAttribute("class") ?? "",
+        right: Math.round(element.getBoundingClientRect().right),
+        tag: element.tagName,
+      }));
+    return {
+      clientWidth,
+      offenders,
+      scrollWidth: document.documentElement.scrollWidth,
+    };
+  });
+  expect(
+    metrics.scrollWidth,
+    `Horizontal overflow offenders: ${JSON.stringify(metrics.offenders)}`,
+  ).toBeLessThanOrEqual(metrics.clientWidth + 1);
 }
 
 async function api<T extends JsonRecord>(
@@ -444,6 +471,13 @@ async function runJourney(browser: Browser, scenario: Scenario): Promise<void> {
         name: "Canonical solution — Game Master only",
       }),
     ).toBeVisible();
+    if (scenario.playerCount === 12) {
+      await expect(
+        hostPage.getByText(names[11], { exact: false }).first(),
+      ).toBeVisible();
+    }
+    await hostPage.setViewportSize({ width: 360, height: 640 });
+    await expectNoHorizontalPageOverflow(hostPage);
     const playerPage = await players[0]!.newPage();
     captureBrowserErrors(playerPage);
     await playerPage.goto(`/room/${roomId}`);
@@ -453,6 +487,8 @@ async function runJourney(browser: Browser, scenario: Scenario): Promise<void> {
     await expect(
       playerPage.getByText("Canonical solution — Game Master only"),
     ).toHaveCount(0);
+    await playerPage.setViewportSize({ width: 360, height: 640 });
+    await expectNoHorizontalPageOverflow(playerPage);
 
     await api(host, "POST", `/api/v1/rooms/${roomId}/commands/start`, {
       expectedStateVersion: hostView.room.stateVersion,

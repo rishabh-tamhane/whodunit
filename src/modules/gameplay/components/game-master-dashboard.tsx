@@ -237,9 +237,9 @@ export function GameMasterDashboard({
       {view.room.retentionDeadline ? (
         <Alert title="Room retention deadline" tone="warning">
           This room is scheduled for deletion after{" "}
-          {view.room.retentionDeadline}. Successful game actions extend
-          incomplete-room inactivity deadlines; page views and presence
-          heartbeats do not.
+          <time className="break-all">{view.room.retentionDeadline}</time>.
+          Successful game actions extend incomplete-room inactivity deadlines;
+          page views and presence heartbeats do not.
         </Alert>
       ) : null}
       <Card elevated>

@@ -11,7 +11,7 @@ const contentSecurityPolicy = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  ...(process.env.NODE_ENV === "production"
+  ...(process.env.APP_ENV === "production"
     ? ["upgrade-insecure-requests"]
     : []),
 ].join("; ");
@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
         key: "Permissions-Policy",
         value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
       },
-      ...(process.env.NODE_ENV === "production"
+      ...(process.env.APP_ENV === "production"
         ? [
             {
               key: "Strict-Transport-Security",

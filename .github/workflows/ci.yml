@@ -80,7 +80,7 @@ jobs:
         run: npm ci
 
       - name: Install Chromium for actor journeys
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Verify migrations, database tests, and API integration
         run: npm run db:verify

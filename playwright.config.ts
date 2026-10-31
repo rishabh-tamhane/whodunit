@@ -10,10 +10,31 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     baseURL: process.env.E2E_BASE_URL,
-    ...devices["Desktop Chrome"],
     headless: true,
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "off",
   },
+  projects: [
+    {
+      name: "multi-actor-chromium",
+      testMatch: /multi-actor-journeys\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "accessibility-desktop-chromium",
+      testMatch: /accessibility\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "accessibility-mobile-chromium",
+      testMatch: /accessibility\.spec\.ts/,
+      use: { ...devices["Pixel 7"] },
+    },
+    {
+      name: "accessibility-desktop-webkit",
+      testMatch: /accessibility\.spec\.ts/,
+      use: { ...devices["Desktop Safari"] },
+    },
+  ],
 });

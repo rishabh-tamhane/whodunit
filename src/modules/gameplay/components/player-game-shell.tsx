@@ -371,8 +371,9 @@ export function PlayerGameShell({
       {player.room.retentionDeadline ? (
         <Alert title="Room retention deadline" tone="warning">
           This room is scheduled for deletion after{" "}
-          {player.room.retentionDeadline}. A successful game action extends an
-          incomplete room; simply viewing the page does not.
+          <time className="break-all">{player.room.retentionDeadline}</time>. A
+          successful game action extends an incomplete room; simply viewing the
+          page does not.
         </Alert>
       ) : null}
       <Card elevated>

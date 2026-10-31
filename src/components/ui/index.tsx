@@ -57,7 +57,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/10 bg-[var(--surface)] p-5",
+        "min-w-0 rounded-2xl border border-white/10 bg-[var(--surface)] p-5",
         elevated && "bg-[var(--surface-raised)] shadow-xl shadow-black/25",
         className,
       )}
@@ -167,11 +167,17 @@ export function Alert({
 }) {
   return (
     <section
-      className={cn("rounded-2xl border p-4", toneClasses[tone], className)}
+      className={cn(
+        "min-w-0 rounded-2xl border p-4",
+        toneClasses[tone],
+        className,
+      )}
       aria-label={title}
     >
       <h3 className="font-extrabold">{title}</h3>
-      <div className="mt-1 text-sm leading-6 opacity-90">{children}</div>
+      <div className="mt-1 min-w-0 break-words text-sm leading-6 opacity-90">
+        {children}
+      </div>
     </section>
   );
 }

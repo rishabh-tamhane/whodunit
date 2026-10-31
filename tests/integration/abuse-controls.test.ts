@@ -80,7 +80,7 @@ describe("HTTP abuse and enumeration controls", () => {
     const headers = {
       cookie: playerCookie,
       "content-type": "application/json",
-      "x-forwarded-for": "198.51.100.10",
+      "x-forwarded-for": "203.0.113.10",
     };
 
     const existingButUnavailable = await api.request<ErrorBody>(
@@ -115,7 +115,7 @@ describe("HTTP abuse and enumeration controls", () => {
     const headers = {
       cookie: recoveredHostCookie,
       "content-type": "application/json",
-      "x-forwarded-for": "198.51.100.11",
+      "x-forwarded-for": "203.0.113.11",
     };
 
     const recovered = await api.request("/api/v1/host-recovery", {
@@ -154,7 +154,7 @@ describe("HTTP abuse and enumeration controls", () => {
           headers: {
             cookie: discoveryCookie,
             "content-type": "application/json",
-            "x-forwarded-for": "198.51.100.20",
+            "x-forwarded-for": "203.0.113.20",
           },
           body: JSON.stringify({ roomCode: "NOEXIST1" }),
         }),
@@ -171,7 +171,7 @@ describe("HTTP abuse and enumeration controls", () => {
           headers: {
             cookie: claimCookie,
             "content-type": "application/json",
-            "x-forwarded-for": "198.51.100.21",
+            "x-forwarded-for": "203.0.113.21",
           },
           body: JSON.stringify({
             playerId: "b0000000-0000-4000-8000-000000000002",
@@ -190,7 +190,7 @@ describe("HTTP abuse and enumeration controls", () => {
           headers: {
             cookie: recoveryCookie,
             "content-type": "application/json",
-            "x-forwarded-for": "198.51.100.22",
+            "x-forwarded-for": "203.0.113.22",
           },
           body: JSON.stringify({ token: "y".repeat(48) }),
         }),
@@ -209,7 +209,7 @@ describe("HTTP abuse and enumeration controls", () => {
             headers: {
               cookie: generationCookie,
               "content-type": "application/json",
-              "x-forwarded-for": "198.51.100.23",
+              "x-forwarded-for": "203.0.113.23",
             },
             body: JSON.stringify({
               expectedStateVersion: generationRoom.stateVersion,
@@ -232,7 +232,7 @@ describe("HTTP abuse and enumeration controls", () => {
             headers: {
               cookie: commandCookie,
               "content-type": "application/json",
-              "x-forwarded-for": "198.51.100.24",
+              "x-forwarded-for": "203.0.113.24",
             },
             body: JSON.stringify({
               expectedStateVersion: commandRoom.stateVersion,

@@ -22,7 +22,7 @@ export async function createSupabaseServerClient() {
                 ...options,
                 path: options.path ?? "/",
                 sameSite: options.sameSite ?? "lax",
-                secure: env.NODE_ENV === "production",
+                secure: env.APP_ENV === "production",
               });
             }
           } catch {

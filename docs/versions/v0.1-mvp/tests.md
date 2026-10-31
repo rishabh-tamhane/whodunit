@@ -191,6 +191,14 @@ release coverage is:
 No critical accessibility issue may ship. A serious issue may ship only with a
 time-bounded approved exception that preserves the core game path.
 
+`tests/e2e/accessibility.spec.ts` is the automated baseline. On every clean
+worker it scans the public entry surfaces with axe in desktop Chromium, mobile
+Chromium emulation, and WebKit; verifies visible focus, a 44 px primary action,
+reduced motion, form naming, and narrow Unicode layout; and complements the
+360 px Game Master/player overflow checks in the 4- and 12-player journeys.
+Physical Safari/Chrome/Edge devices, 200% browser zoom, and VoiceOver/TalkBack
+remain human release evidence in `accessibility-device-checklist.md`.
+
 ## 10. Defect severity and release policy
 
 | Severity | Examples | Policy |
