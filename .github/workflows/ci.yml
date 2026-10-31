@@ -17,7 +17,7 @@ concurrency:
 jobs:
   application:
     name: Application checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Check out repository
@@ -58,7 +58,7 @@ jobs:
 
   database:
     name: Database smoke
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       CI: "true"
