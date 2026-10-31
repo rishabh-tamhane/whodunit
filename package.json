@@ -28,6 +28,7 @@
     "eval:story:live": "node --env-file-if-exists=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.story-evals.config.ts",
     "test:integration": "node scripts/run-integration-tests.mjs",
     "test:e2e": "node scripts/run-e2e-tests.mjs",
+    "test:performance": "npm run db:verify",
     "test:security": "npm run scan:secrets && vitest run tests/unit/route-security.test.ts tests/unit/openai-webhook.test.ts tests/unit/instrumentation.test.ts tests/unit/ui.test.tsx && npm run db:verify",
     "test:watch": "vitest",
     "check": "npm run format:check && npm run lint && npm run check:boundaries && npm run scan:secrets && npm run typecheck && npm test && npm run build"

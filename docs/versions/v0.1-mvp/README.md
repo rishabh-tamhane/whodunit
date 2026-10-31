@@ -14,3 +14,13 @@ record for the first playable Whodunit release.
 - [database-verification.md](./database-verification.md) — database evidence
 - [accessibility-device-checklist.md](./accessibility-device-checklist.md) —
   human browser, device, keyboard, screen-reader, zoom, and motion checks
+- [performance-capacity-checklist.md](./performance-capacity-checklist.md) —
+  local regression and hosted staging capacity evidence
+- [production-infrastructure-checklist.md](./production-infrastructure-checklist.md)
+  — production/preview isolation and provider provisioning
+- [staging-drill-checklist.md](./staging-drill-checklist.md) — independent
+  recovery, rotation, outage, restore, cleanup, and rollback drills
+- [release-checklist.md](./release-checklist.md) — final gates, accepted risks,
+  production smoke, approvals, and observation window
+- [playtest-checklist.md](./playtest-checklist.md) — moderated 4- and 12-player
+  observation script, findings, and sign-off
