@@ -2,8 +2,8 @@
 
 Whodunit is a mobile-first Halloween murder-mystery game for 4–12 players,
 run by a separate, non-playing Game Master. This repository currently contains
-the v0.1 product specification, technical design, execution backlog, and the
-first application-foundation increment.
+the v0.1 product specification, technical design, execution backlog, and a
+working end-to-end implementation through mystery completion and retention.
 
 The foundation preserves the product's core boundaries:
 
@@ -52,6 +52,7 @@ The initial routes are:
 npm run format:check
 npm run lint
 npm run check:boundaries
+npm run scan:secrets
 npm run typecheck
 npm test
 npm run build
@@ -101,6 +102,7 @@ Repository rules should require both job names before merging to `main`:
 - [Two-actor UX flow](docs/versions/v0.1-mvp/ux-flow.md)
 - [Implementation backlog](docs/versions/v0.1-mvp/tasks.md)
 - [Test strategy](docs/versions/v0.1-mvp/tests.md)
+- [Operations and recovery runbook](docs/versions/v0.1-mvp/operations.md)
 
 The backlog is the execution record. A checkbox is marked complete only after
 the task's stated acceptance criteria and focused checks pass.

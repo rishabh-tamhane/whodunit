@@ -26,6 +26,13 @@ It starts the disposable local Supabase Docker stack, replays every forward migr
 | DB-12 | `20261030120000_duration_recommendation_profiles.sql` | `0120_duration_recommendation_profiles.sql` |
 | DB-13 | `20261030130000_scoring_profile.sql` | `0130_scoring_profile.sql` |
 | DB-14 | No production schema change | `0140_database_fixtures_migration_verification.sql` |
+| IDN-02–04 | `20261030140000_room_setup_commands.sql` | `0150_room_setup_commands.sql` |
+| IDN-06–10 | `20261030150000_onboarding_identity_commands.sql` | `0160_onboarding_identity_commands.sql` |
+| GEN-01–10 | `20261030160000_generation_pipeline.sql` | `0170_generation_pipeline.sql` |
+| GAM/GM/PLY runtime | `20261030170000_gameplay_commands.sql` | `0180_gameplay_commands.sql` |
+| INT-01–05 | `20261030180000_live_interventions.sql` | `0190_live_interventions.sql` |
+| END-01–07 | `20261030190000_endgame_commands.sql` | `0200_endgame_commands.sql` |
+| SEC/REL retention | `20261030200000_security_retention_operations.sql` | `0210_security_retention_operations.sql` |
 
 `0001_harness_smoke.sql` separately proves that local Auth, Postgres, and migration history exist before domain tests run.
 

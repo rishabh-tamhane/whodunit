@@ -368,6 +368,13 @@ export function PlayerGameShell({
           masquerade as saved and will not duplicate when retried.
         </Alert>
       ) : null}
+      {player.room.retentionDeadline ? (
+        <Alert title="Room retention deadline" tone="warning">
+          This room is scheduled for deletion after{" "}
+          {player.room.retentionDeadline}. A successful game action extends an
+          incomplete room; simply viewing the page does not.
+        </Alert>
+      ) : null}
       <Card elevated>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>

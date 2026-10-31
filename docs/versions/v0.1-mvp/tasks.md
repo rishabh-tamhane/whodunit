@@ -1023,7 +1023,7 @@ problems without logging story secrets or player-authored private content.
     abuse tests are throttled without revealing room existence or private
     state.
 
-- [ ] **SEC-02 — Add web request and browser defenses**
+- [x] **SEC-02 — Add web request and browser defenses**
   - **Depends on:** FND-03, APP-01.
   - **Deliverable:** Origin/CSRF enforcement, secure cookie flags, CSP,
     output-escaping policy, security headers, and dynamic response-cache
@@ -1031,7 +1031,7 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** Sensitive mutations reject invalid origin/CSRF state and
     private projections cannot be cached or embedded cross-origin.
 
-- [ ] **SEC-03 — Enforce logging and analytics redaction**
+- [x] **SEC-03 — Enforce logging and analytics redaction**
   - **Depends on:** IDN-10, GEN-03, GEN-05, GEN-08, GAM-05, INT-04, PLY-03,
     END-02.
   - **Deliverable:** Structured logging allowlist, sensitive-field denylist,
@@ -1049,14 +1049,14 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** Invalid, replayed, oversized, or out-of-order webhooks cannot
     mutate generation state.
 
-- [ ] **REL-01 — Reconcile stale generation jobs**
+- [x] **REL-01 — Reconcile stale generation jobs**
   - **Depends on:** GEN-05, GEN-07.
   - **Deliverable:** Scheduled reconciliation, lease expiry, provider-status
     check, checkpoint resume, terminal cleanup, and operator runbook.
   - **Done when:** Stuck phases recover or fail safely without a partial or
     second story.
 
-- [ ] **REL-02 — Harden content-free Realtime**
+- [x] **REL-02 — Harden content-free Realtime**
   - **Depends on:** APP-02, GAM-01.
   - **Deliverable:** Private channel authorization, minimal room/version signal,
     reconnect/focus refetch, bounded polling fallback, and old-session expiry
@@ -1072,7 +1072,7 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** Room-first locking yields one documented winner and no
     unauthorized mutation in every interleaving.
 
-- [ ] **REL-04 — Implement user-facing failure recovery**
+- [x] **REL-04 — Implement user-facing failure recovery**
   - **Depends on:** GEN-11, GAM-07, GM-03, PLY-08.
   - **Deliverable:** Safe retry/resume states for offline operation, stale
     versions, revoked membership, failed recovery, generation timeout,
@@ -1080,7 +1080,7 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** Every failure matrix entry has clear ownership, copy, retry
     semantics, and no accidental duplicate mutation.
 
-- [ ] **REL-05 — Implement completed-room deletion**
+- [x] **REL-05 — Implement completed-room deletion**
   - **Depends on:** END-07.
   - **Deliverable:** Audited, batched deletion procedure and daily Supabase Cron
     for rooms whose 30-day expires_at has passed, including all room-scoped
@@ -1088,7 +1088,7 @@ problems without logging story secrets or player-authored private content.
   - **Done when:** A completed room leaves no canonical, runtime, case-file,
     membership, recovery, event, or signal residue after deletion.
 
-- [ ] **REL-06 — Implement incomplete-room retention**
+- [x] **REL-06 — Implement incomplete-room retention**
   - **Depends on:** M0-06, REL-01.
   - **Deliverable:** State-specific warning, recovery, expiry, and deletion
     jobs for every non-completed lifecycle state plus eligible anonymous-auth

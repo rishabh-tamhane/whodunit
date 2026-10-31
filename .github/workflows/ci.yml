@@ -44,6 +44,9 @@ jobs:
       - name: Check module boundaries
         run: npm run check:boundaries
 
+      - name: Scan committed source for secrets
+        run: npm run scan:secrets
+
       - name: Type-check
         run: npm run typecheck
 

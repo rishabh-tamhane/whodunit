@@ -1,7 +1,6 @@
 import { RecoverHostInputSchema, RecoveredHostSchema } from "@/contracts";
 import {
   apiError,
-  databaseError,
   noStoreJson,
   parseJsonBody,
   requireUser,
@@ -26,7 +25,13 @@ export async function POST(request: Request) {
     replacement_token_digest: replacement.digestForDatabase,
     replacement_expires_at: replacement.expiresAt.toISOString(),
   });
-  if (error) return databaseError(request, error);
+  if (error)
+    return apiError(
+      request,
+      404,
+      "NOT_FOUND",
+      "This recovery link is invalid, expired, or already replaced.",
+    );
   const result = RecoveredHostSchema.omit({ recoveryPath: true }).safeParse(
     data,
   );

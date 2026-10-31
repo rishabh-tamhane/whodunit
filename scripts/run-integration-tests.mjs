@@ -164,6 +164,7 @@ async function main() {
     OPENAI_WEBHOOK_SECRET: "integration-webhook-secret-not-real",
     HOST_RECOVERY_TOKEN_PEPPER: "integration-recovery-pepper-not-real-123456",
     SAFETY_IDENTIFIER_HMAC_SECRET: "integration-safety-secret-not-real-1234567",
+    CRON_SECRET: "integration-cron-secret-not-real-1234567890",
     STORY_MODEL: "gpt-6.1-sol",
     STORY_ESCALATION_MODEL: "gpt-6-astra",
     INTERVENTION_MODEL: "gpt-6.1-sol",

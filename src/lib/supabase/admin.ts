@@ -32,7 +32,8 @@ export async function callSupabaseAdminRpc(
   data: unknown;
   error: { code?: string; message: string } | null;
 }> {
-  const rpc = getSupabaseAdminClient().rpc as unknown as (
+  const client = getSupabaseAdminClient();
+  const rpc = client.rpc.bind(client) as unknown as (
     name: string,
     parameters: Record<string, unknown>,
   ) => Promise<{

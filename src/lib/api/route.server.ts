@@ -5,6 +5,77 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import type { ApiErrorCode } from "@/contracts/api/error";
+import { callSupabaseAdminRpc } from "@/lib/supabase/admin";
+
+const MAX_JSON_BODY_BYTES = 64 * 1024;
+
+function requestOriginAllowed(request: Request): boolean {
+  if (request.headers.get("sec-fetch-site") === "cross-site") return false;
+  const origin = request.headers.get("origin");
+  if (!origin) return true;
+  try {
+    return new URL(origin).origin === new URL(request.url).origin;
+  } catch {
+    return false;
+  }
+}
+
+async function sha256(value: string): Promise<string> {
+  const bytes = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return Array.from(new Uint8Array(bytes), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
+function normalizedRoute(request: Request): string {
+  return new URL(request.url).pathname
+    .replace(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi,
+      ":id",
+    )
+    .slice(0, 200);
+}
+
+function requestIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+async function consumeBudget(
+  scope: "IP_ROUTE" | "PRINCIPAL_ROUTE" | "ROOM",
+  key: string,
+  limit: number,
+): Promise<{ allowed: boolean; retryAfterSeconds: number } | undefined> {
+  const { data, error } = await callSupabaseAdminRpc("consume_rate_limit", {
+    bucket_scope: scope,
+    bucket_key_hash: await sha256(key),
+    maximum_requests: limit,
+    window_seconds: 60,
+  });
+  if (error) return undefined;
+  const result = data as { allowed?: boolean; retryAfterSeconds?: number };
+  return {
+    allowed: result.allowed === true,
+    retryAfterSeconds: Math.max(1, result.retryAfterSeconds ?? 60),
+  };
+}
+
+function rateLimitResponse(request: Request, retryAfterSeconds: number) {
+  const response = apiError(
+    request,
+    429,
+    "RATE_LIMITED",
+    "Too many requests. Wait briefly and try again.",
+  );
+  response.headers.set("Retry-After", String(retryAfterSeconds));
+  return response;
+}
 
 export function noStoreJson(body: unknown, init: ResponseInit = {}) {
   const headers = new Headers(init.headers);
@@ -39,10 +110,59 @@ export async function parseJsonBody<T>(
 ): Promise<
   { success: true; data: T } | { success: false; response: NextResponse }
 > {
+  if (!requestOriginAllowed(request)) {
+    return {
+      success: false,
+      response: apiError(
+        request,
+        403,
+        "FORBIDDEN",
+        "Cross-site mutations are not allowed.",
+      ),
+    };
+  }
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    return {
+      success: false,
+      response: apiError(
+        request,
+        400,
+        "VALIDATION_ERROR",
+        "Content-Type must be application/json.",
+      ),
+    };
+  }
+  const declaredLength = Number(request.headers.get("content-length") ?? 0);
+  if (declaredLength > MAX_JSON_BODY_BYTES) {
+    return {
+      success: false,
+      response: apiError(
+        request,
+        413,
+        "VALIDATION_ERROR",
+        "The request body is too large.",
+      ),
+    };
+  }
   let payload: unknown;
   try {
-    payload = await request.json();
-  } catch {
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_JSON_BODY_BYTES)
+      throw new RangeError("BODY_TOO_LARGE");
+    payload = JSON.parse(rawBody);
+  } catch (error) {
+    if (error instanceof RangeError) {
+      return {
+        success: false,
+        response: apiError(
+          request,
+          413,
+          "VALIDATION_ERROR",
+          "The request body is too large.",
+        ),
+      };
+    }
     return {
       success: false,
       response: apiError(
@@ -80,6 +200,17 @@ export async function requireUser(
 ): Promise<
   { success: true; user: User } | { success: false; response: NextResponse }
 > {
+  if (request.method !== "GET" && !requestOriginAllowed(request)) {
+    return {
+      success: false,
+      response: apiError(
+        request,
+        403,
+        "FORBIDDEN",
+        "Cross-site mutations are not allowed.",
+      ),
+    };
+  }
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) {
     return {
@@ -90,6 +221,35 @@ export async function requireUser(
         "AUTHENTICATION_REQUIRED",
         "Start or restore your guest session and try again.",
       ),
+    };
+  }
+  const route = normalizedRoute(request);
+  const pathRoomId = new URL(request.url).pathname.match(
+    /\/rooms\/([0-9a-f-]{36})(?:\/|$)/i,
+  )?.[1];
+  const budgets = await Promise.all([
+    consumeBudget("IP_ROUTE", `${requestIp(request)}|${route}`, 90),
+    consumeBudget("PRINCIPAL_ROUTE", `${data.user.id}|${route}`, 120),
+    ...(pathRoomId
+      ? [consumeBudget("ROOM", `${pathRoomId}|${route}`, 180)]
+      : []),
+  ]);
+  if (budgets.some((budget) => budget === undefined)) {
+    return {
+      success: false,
+      response: apiError(
+        request,
+        503,
+        "SERVICE_UNAVAILABLE",
+        "Request protection is temporarily unavailable.",
+      ),
+    };
+  }
+  const denied = budgets.find((budget) => budget && !budget.allowed);
+  if (denied) {
+    return {
+      success: false,
+      response: rateLimitResponse(request, denied.retryAfterSeconds),
     };
   }
   return { success: true, user: data.user };

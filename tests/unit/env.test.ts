@@ -18,6 +18,7 @@ const base = {
   OPENAI_WEBHOOK_SECRET: "webhook-secret-for-tests",
   HOST_RECOVERY_TOKEN_PEPPER: "r".repeat(32),
   SAFETY_IDENTIFIER_HMAC_SECRET: "s".repeat(32),
+  CRON_SECRET: "c".repeat(32),
   STORY_MODEL: "gpt-6.1-sol",
   STORY_ESCALATION_MODEL: "gpt-6-astra",
   INTERVENTION_MODEL: "gpt-6.1-sol",

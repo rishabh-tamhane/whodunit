@@ -10,6 +10,7 @@ const ActorRoomSchema = z.object({
   currentRoundId: z.string().uuid().nullable().optional(),
   completedAt: z.string().nullable().optional(),
   expiresAt: z.string().nullable().optional(),
+  retentionDeadline: z.string().nullable().optional(),
 });
 
 export const GameMasterViewSchema = z.object({

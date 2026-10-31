@@ -234,6 +234,14 @@ export function GameMasterDashboard({
           while an action is in flight; stale versions safely refetch.
         </Alert>
       ) : null}
+      {view.room.retentionDeadline ? (
+        <Alert title="Room retention deadline" tone="warning">
+          This room is scheduled for deletion after{" "}
+          {view.room.retentionDeadline}. Successful game actions extend
+          incomplete-room inactivity deadlines; page views and presence
+          heartbeats do not.
+        </Alert>
+      ) : null}
       <Card elevated>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>

@@ -3,11 +3,11 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-import { getPublicEnv } from "@/lib/env/public";
+import { getServerEnv } from "@/lib/env/server";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
-  const env = getPublicEnv();
+  const env = getServerEnv();
 
   return createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
@@ -18,7 +18,12 @@ export async function createSupabaseServerClient() {
         setAll: (cookiesToSet) => {
           try {
             for (const { name, value, options } of cookiesToSet) {
-              cookieStore.set(name, value, options);
+              cookieStore.set(name, value, {
+                ...options,
+                path: options.path ?? "/",
+                sameSite: options.sameSite ?? "lax",
+                secure: env.NODE_ENV === "production",
+              });
             }
           } catch {
             // Server Components cannot set cookies. Route handlers and server
