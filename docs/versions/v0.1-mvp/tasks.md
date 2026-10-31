@@ -386,7 +386,7 @@ table access cannot bypass application commands or projections.
   - **Done when:** Referenced scoring versions cannot be edited or deleted and
     approved examples produce deterministic results.
 
-- [ ] **DB-14 — Add database fixture and migration verification**
+- [x] **DB-14 — Add database fixture and migration verification**
   - **Depends on:** DB-01 through DB-13.
   - **Deliverable:** Minimal, 4-player, and 12-player fixtures plus forward
     migration, clean reset, constraint, and rollback tests.
