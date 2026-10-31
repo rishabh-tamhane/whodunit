@@ -133,23 +133,23 @@ $function$;
 select is(
   (select pg_catalog.count(*)::integer
     from supabase_migrations.schema_migrations
-    where version between '20261030000000' and '20261030130000'),
-  14,
+    where version between '20261030000000' and '20261030150000'),
+  16,
   'every foundation-through-profile migration replayed from empty'
 );
 
 select is(
   (select pg_catalog.count(distinct version)::integer
     from supabase_migrations.schema_migrations
-    where version between '20261030000000' and '20261030130000'),
-  14,
+    where version between '20261030000000' and '20261030150000'),
+  16,
   'forward migration versions are unique'
 );
 
 select is(
   (select pg_catalog.max(version)
     from supabase_migrations.schema_migrations),
-  '20261030130000',
+  '20261030150000',
   'the clean worker reached the expected schema head'
 );
 

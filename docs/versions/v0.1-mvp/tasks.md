@@ -402,7 +402,7 @@ discover safe slot information, request a claim, receive approval, reconnect,
 acknowledge disclosures, and privately submit required descriptions. Recovery
 never turns the Game Master into a player or exposes private drafts.
 
-- [ ] **IDN-01 — Bootstrap anonymous sessions**
+- [x] **IDN-01 — Bootstrap anonymous sessions**
   - **Depends on:** FND-03, DB-10.
   - **Deliverable:** Supabase anonymous session creation, secure cookie
     persistence, server verification, expiry handling, and no-shared-cache
@@ -410,7 +410,7 @@ never turns the Game Master into a player or exposes private drafts.
   - **Done when:** Refresh restores the principal, expired sessions fail
     closed, and actor responses are never shared-cached.
 
-- [ ] **IDN-02 — Create rooms and Game Master credentials**
+- [x] **IDN-02 — Create rooms and Game Master credentials**
   - **Depends on:** IDN-01, DB-03, DB-10.
   - **Deliverable:** Atomic room creation, initial host tenure, public room code,
     QR payload, and separately generated high-entropy recovery credential
@@ -418,7 +418,7 @@ never turns the Game Master into a player or exposes private drafts.
   - **Done when:** Creation commits room and tenure together, displays the
     recovery link once, and proves the public code grants no private access.
 
-- [ ] **IDN-03 — Build the create-room and recovery-save UI**
+- [x] **IDN-03 — Build the create-room and recovery-save UI**
   - **Depends on:** IDN-02, UX-02, UI-01.
   - **Deliverable:** Game Master creation flow, recovery-link confirmation,
     fragment-to-POST exchange, browser-history cleanup, invitation screen,
@@ -427,7 +427,7 @@ never turns the Game Master into a player or exposes private drafts.
     credential, and public player code and prevents accidental dismissal before
     acknowledgement.
 
-- [ ] **IDN-04 — Implement room configuration**
+- [x] **IDN-04 — Implement room configuration**
   - **Depends on:** IDN-02, DB-12.
   - **Deliverable:** Server commands for 4–12 player slots, names, costumes,
     optional details, duration, faction counts, murderer awareness, and setup
@@ -436,7 +436,7 @@ never turns the Game Master into a player or exposes private drafts.
     slot, duplicate names work, the Game Master is excluded from player count,
     and invalid configurations return field errors.
 
-- [ ] **IDN-05 — Build the player and game configuration UI**
+- [x] **IDN-05 — Build the player and game configuration UI**
   - **Depends on:** IDN-04, FND-07.
   - **Deliverable:** Mobile/desktop slot editor, duration and faction controls,
     balanced distribution suggestions, host guidance acknowledgement, room
@@ -446,7 +446,7 @@ never turns the Game Master into a player or exposes private drafts.
     scrolling, representative party sizes receive a valid nonbinding faction
     suggestion, and the UI never offers the Game Master a player slot.
 
-- [ ] **IDN-06 — Implement player claim commands**
+- [x] **IDN-06 — Implement player claim commands**
   - **Depends on:** IDN-01, IDN-04, M0-03.
   - **Deliverable:** Initial-claim request, Game Master approval/rejection,
     conflict handling, active-membership revocation, audit events, and API
@@ -456,7 +456,7 @@ never turns the Game Master into a player or exposes private drafts.
     the same room, conflicting requests resolve deterministically, and room-code
     knowledge alone exposes no private player data.
 
-- [ ] **IDN-07 — Build safe room lookup and player claim UI**
+- [x] **IDN-07 — Build safe room lookup and player claim UI**
   - **Depends on:** IDN-06, IDN-08, UX-02, UI-01.
   - **Deliverable:** Code entry, safe room summary, all display slots with
     unclaimed/occupied status, initial claim request, reconnect action, pending,
@@ -467,7 +467,7 @@ never turns the Game Master into a player or exposes private drafts.
     the player can distinguish duplicate names by safe host-created details
     without seeing any generated role, raw description, or private state.
 
-- [ ] **IDN-08 — Implement reconnect and device replacement**
+- [x] **IDN-08 — Implement reconnect and device replacement**
   - **Depends on:** IDN-06, M0-03.
   - **Deliverable:** Reconnect request and Game Master-approved replacement
     transaction using room → player slot → membership lock order.
@@ -475,14 +475,14 @@ never turns the Game Master into a player or exposes private drafts.
     receives the same player ID, and notebook, mission, theory, accusation, and
     score state survives.
 
-- [ ] **IDN-09 — Build Game Master claim and device management**
+- [x] **IDN-09 — Build Game Master claim and device management**
   - **Depends on:** IDN-06, IDN-08, IDN-15, FND-07.
   - **Deliverable:** Pending request queue, approve/reject actions, occupied
     slots, connection status, revoke/replace confirmations, and audit feedback.
   - **Done when:** Concurrent actions show a clear winner, stale views refetch,
     and no action can bind the Game Master principal to a player.
 
-- [ ] **IDN-10 — Implement host recovery and credential rotation**
+- [x] **IDN-10 — Implement host recovery and credential rotation**
   - **Depends on:** IDN-02, DB-03.
   - **Deliverable:** POST-only recovery exchange restricted to a clean
     principal, atomically transferred host tenure, active-host
@@ -491,7 +491,7 @@ never turns the Game Master into a player or exposes private drafts.
     new credential is stored only as a hash, player memberships are unchanged,
     and recovered sessions receive the room-appropriate GameMasterView.
 
-- [ ] **IDN-11 — Build the host recovery UI**
+- [x] **IDN-11 — Build the host recovery UI**
   - **Depends on:** IDN-10, UI-01.
   - **Deliverable:** Recovery-link exchange, unsafe-principal rejection,
     credential rotation, success handoff, invalid/used/expired token states,
@@ -499,7 +499,7 @@ never turns the Game Master into a player or exposes private drafts.
   - **Done when:** Recovery works on a replacement browser and never displays
     story data before successful authorization.
 
-- [ ] **IDN-12 — Implement acknowledgements and private descriptions**
+- [x] **IDN-12 — Implement acknowledgements and private descriptions**
   - **Depends on:** IDN-06, UX-02.
   - **Deliverable:** Player fictional-use/sensitive-input acknowledgement,
     separate host-guidance acknowledgement and room-consent confirmation, and
@@ -512,7 +512,7 @@ never turns the Game Master into a player or exposes private drafts.
     acknowledgements are recorded independently; rejected/sensitive input is
     handled safely.
 
-- [ ] **IDN-13 — Implement readiness calculation**
+- [x] **IDN-13 — Implement readiness calculation**
   - **Depends on:** IDN-12, M0-02.
   - **Deliverable:** Deterministic readiness service/RPC covering approved
     claims, every player's acknowledgement, the host's guidance acknowledgement
@@ -521,7 +521,7 @@ never turns the Game Master into a player or exposes private drafts.
   - **Done when:** The exact missing items are returned without exposing private
     content and concurrent changes cannot start an unready generation.
 
-- [ ] **IDN-14 — Build description and waiting-room experiences**
+- [x] **IDN-14 — Build description and waiting-room experiences**
   - **Depends on:** IDN-12, IDN-13, UI-01.
   - **Deliverable:** Player description flow, save/submit feedback, waiting
     screen, and Game Master readiness dashboard showing status but not raw text
@@ -529,7 +529,7 @@ never turns the Game Master into a player or exposes private drafts.
   - **Done when:** Players can finish on a phone, refresh safely, and understand
     what remains; the Game Master sees only completion state.
 
-- [ ] **IDN-15 — Implement presence heartbeats**
+- [x] **IDN-15 — Implement presence heartbeats**
   - **Depends on:** IDN-06, DB-05.
   - **Deliverable:** Rate-limited heartbeat and derived
     unclaimed/pending/connected/disconnected status.
@@ -537,7 +537,7 @@ never turns the Game Master into a player or exposes private drafts.
     disconnect leaves membership active, and approved memberships initialize
     timestamps correctly.
 
-- [ ] **IDN-16 — Implement safe pre-lock projections**
+- [x] **IDN-16 — Implement safe pre-lock projections**
   - **Depends on:** IDN-13, IDN-15, DB-11.
   - **Deliverable:** SafeLobby, pending-player, setup, claims, waiting-room, and
     generation-status projections.

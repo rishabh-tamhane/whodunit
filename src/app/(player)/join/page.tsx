@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { JoinRoomFlow } from "@/modules/identity/components/join-room-flow";
+
 export const metadata: Metadata = {
   title: "Join",
 };
 
-export default function JoinEntryPage() {
+export default async function JoinEntryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const { code = "" } = await searchParams;
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-5 py-12">
       <p className="text-sm font-bold tracking-[0.2em] text-violet-300 uppercase">
@@ -18,9 +25,8 @@ export default function JoinEntryPage() {
         A room code finds the safe lobby. It never grants access to a role,
         clue, mission, or private player information.
       </p>
-      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm leading-6 text-stone-300">
-        Player claiming and Game Master approval will be implemented after the
-        identity and room authorization foundation.
+      <div className="mt-10">
+        <JoinRoomFlow initialCode={code} />
       </div>
       <Link
         href="/"

@@ -6,4 +6,5 @@ export * from "@/contracts/domain/lifecycle";
 export * from "@/contracts/domain/limits";
 export * from "@/contracts/domain/membership";
 export * from "@/contracts/domain/mission";
+export * from "@/contracts/onboarding";
 export * from "@/contracts/story/version";
