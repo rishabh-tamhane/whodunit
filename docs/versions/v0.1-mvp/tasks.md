@@ -303,7 +303,7 @@ table access cannot bypass application commands or projections.
     and former host principals cannot claim player slots; concurrent recovery
     and claim operations serialize.
 
-- [ ] **DB-04 — Add generation and canonical-story tables**
+- [x] **DB-04 — Add generation and canonical-story tables**
   - **Depends on:** DB-01, FND-04.
   - **Deliverable:** Generation jobs, canonical story, rounds, solution,
     dossiers, relationships, timeline, evidence graph, missions,
