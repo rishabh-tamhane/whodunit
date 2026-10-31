@@ -304,6 +304,32 @@ Before a room can leave LOBBY:
 
 The Game Service returns balanced faction-count suggestions based on party size, but the host remains responsible for choosing a valid distribution. Duration selects a versioned round profile and target pacing; timers are informational and never advance the game automatically.
 
+The initial reviewed profiles are `duration-v1` and `factions-v1`:
+
+| Target duration | Investigation rounds | Round targets | Evidence events | Intervention cap per round |
+|---:|---:|---|---:|---:|
+| 30 minutes | 2 | 9, 9 min | 4–6 | 1 |
+| 45 minutes | 3 | 9, 9, 9 min | 6–8 | 1 |
+| 60 minutes | 3 | 12, 12, 12 min | 7–10 | 2 |
+| 90 minutes | 4 | 15 min each | 10–14 | 2 |
+| 120 minutes | 5 | 17 min each | 13–18 | 2 |
+
+Each investigation round schedules one achievable mission per player. The remaining target time is allocated to the opening, final accusations, and reveal. These targets guide generated pacing but never trigger a state transition.
+
+| Players | Murderers | Accomplices | Innocents |
+|---:|---:|---:|---:|
+| 4 | 1 | 0 | 3 |
+| 5 | 1 | 1 | 3 |
+| 6 | 1 | 1 | 4 |
+| 7 | 2 | 0 | 5 |
+| 8 | 2 | 1 | 5 |
+| 9 | 2 | 1 | 6 |
+| 10 | 2 | 2 | 6 |
+| 11 | 3 | 1 | 7 |
+| 12 | 3 | 2 | 7 |
+
+These faction distributions are defaults, not forced choices. Every custom distribution still has to sum to the player count and contain at least one murderer and one innocent.
+
 ## 9. Identity, Joining, and Authorization
 
 ### 9.1 Identity model
@@ -587,6 +613,12 @@ Application-owned immutable scoring configuration:
 - created_at and retired_at metadata.
 
 Profiles are installed through reviewed application/database migrations and cannot be edited after a room references them. The backend selects the room's profile before generation, injects its exact version into the canonical package envelope after model output, and includes it in the package checksum. The LLM cannot choose or modify the profile.
+
+#### duration_profiles and faction_recommendation_profiles
+
+Application-owned pacing and recommendation configuration is installed by reviewed migrations. Each row has a semantic version, canonical JSON payload, SHA-256 checksum, and normalized lookup fields. Duration profiles define the investigation-round count and targets, mission density, evidence-event range, and intervention cap. Recommendation profiles define the balanced default for each supported 4–12 player count.
+
+Rooms reference both the duration-profile version and selected duration through a restrictive foreign key. Profile rows reject update and delete, so future versions can be added without changing the pacing or recommendation presented to an existing room.
 
 #### players
 
@@ -1336,7 +1368,33 @@ Scoring is deterministic and versioned in application-owned `scoring_profiles`. 
 
 The LLM never defines point weights, victory rules, or grades accusations.
 
-Exact point weights remain product configuration and can change between scoring-profile versions without changing old rooms.
+The reviewed `score-v1` profile uses these deterministic weights:
+
+| Scored item | Points |
+|---|---:|
+| Each correctly named murderer | +20 |
+| Each incorrectly named murderer | -5 |
+| Exact full murderer set | +20 |
+| Each correctly named accomplice | +5 |
+| Each incorrectly named accomplice | -2 |
+| Correct motive | +10 |
+| Correct method | +10 |
+| Each correctly cited supporting evidence item | +3, capped at +15 |
+| Qualified early deduction | +2 per remaining investigation round, capped at +10 |
+
+Totals cannot fall below zero. A theory qualifies for the early bonus only when it names the complete murderer set and cites at least two then-released supporting evidence items. Only the earliest qualifying theory is used. `earlyBonus = min(10, 2 × (roundCount - submittedRoundSequence + 1))`.
+
+A murderer is identified for the faction result when a strict majority of all configured innocent players name that murderer in submitted final cases. Every murderer must be identified for the innocents to win; otherwise murderers win and accomplices share their result. Non-submitters receive zero points and contribute no vote, but remain in the strict-majority denominator.
+
+Scoreboard ties share the same rank. Version 1 issues three single-recipient fun awards using deterministic tie-breakers:
+
+- **Master Detective:** highest final score; tie by earlier final submission, then seat order.
+- **Earliest Breakthrough:** earliest qualifying theory; tie by submission time, then seat order.
+- **Evidence Hound:** most correct supporting evidence; tie by total score, then seat order.
+
+The Game Master may close once everyone submits. Early close requires a confirmation naming missing players and explaining their zero score/no-vote outcome. A disconnected player is treated the same as any other missing submitter. Closing with zero submissions requires a second explicit confirmation and produces a murderer/accomplice faction win with all scores zero.
+
+Scoring-profile versions may change for future rooms without changing old rooms. The database stores the canonical profile JSON and checksum, and final scoring snapshots repeat that version and checksum.
 
 ### 18.3 Endgame flowchart
 

@@ -330,6 +330,10 @@ The game may also recognize the best detective or earliest justified deduction.
 
 The scoring system should accommodate multiple murderers without making correct partial deductions feel worthless.
 
+For the MVP faction outcome, a murderer is identified only when a strict majority of all configured innocent players name that murderer in their submitted final cases. Every murderer must cross that threshold for the innocents to win. A missing final case contributes no vote; murderer and accomplice cases do not count toward the innocent threshold. If no one submits, the murderer and accomplice factions win and every player receives zero points.
+
+The Game Master may close final-case intake after every player submits, or may close it early after a confirmation that names every missing player and states that each non-submitter receives zero points and no faction vote. A disconnected player receives no automatic case; the Game Master may wait for reconnection or use the same early-close confirmation. Closing with zero submissions requires a second explicit confirmation before the reveal proceeds.
+
 ---
 
 ## 11. Final Story and Game Master Case File

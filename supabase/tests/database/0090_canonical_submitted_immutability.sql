@@ -477,7 +477,9 @@ values (
   'ae000000-0000-4000-8000-000000000001',
   'a1000000-0000-4000-8000-000000000001',
   'a5000000-0000-4000-8000-000000000001', 'score-v1',
-  decode(repeat('34',32),'hex'), decode(repeat('31',32),'hex'),
+  (select checksum from app_private.scoring_profiles
+    where profile_version = 'score-v1'),
+  decode(repeat('31',32),'hex'),
   decode(repeat('32',32),'hex'), decode(repeat('35',32),'hex'),
   10, 1, '{}'::jsonb
 );
@@ -586,7 +588,9 @@ values (
   'a5000000-0000-4000-8000-000000000001',
   'ae000000-0000-4000-8000-000000000001',
   'a8000000-0000-4000-8000-000000000001', 10, 'score-v1',
-  decode(repeat('34',32),'hex'), decode(repeat('31',32),'hex'),
+  (select checksum from app_private.scoring_profiles
+    where profile_version = 'score-v1'),
+  decode(repeat('31',32),'hex'),
   decode(repeat('32',32),'hex'), decode(repeat('35',32),'hex'),
   decode(repeat('36',32),'hex'), '{}'::jsonb
 );
@@ -612,7 +616,9 @@ values (
   'a5000000-0000-4000-8000-000000000001',
   'ae000000-0000-4000-8000-000000000001',
   'b2000000-0000-4000-8000-000000000001',
-  'case-v1', 'score-v1', decode(repeat('34',32),'hex'),
+  'case-v1', 'score-v1',
+  (select checksum from app_private.scoring_profiles
+    where profile_version = 'score-v1'),
   decode(repeat('31',32),'hex'), decode(repeat('32',32),'hex'),
   decode(repeat('35',32),'hex'), decode(repeat('36',32),'hex'),
   decode(repeat('37',32),'hex'), '{}'::jsonb

@@ -119,7 +119,7 @@ or technical design. No dependent task relies on an undocumented assumption.
     requests.
   - **Blocks:** IDN-06, IDN-08.
 
-- [ ] **M0-04 — Approve scoring weights and awards**
+- [x] **M0-04 — Approve scoring weights and awards**
   - **Depends on:** M0-01.
   - **Deliverable:** Version 1 point weights, multi-murderer partial credit,
     deterministic early-deduction bonus rules, tie behavior, and fun awards.
@@ -130,7 +130,7 @@ or technical design. No dependent task relies on an undocumented assumption.
     profile is added to the technical design.
   - **Blocks:** DB-13, END-04.
 
-- [ ] **M0-05 — Decide accusation closing and non-submitter behavior**
+- [x] **M0-05 — Decide accusation closing and non-submitter behavior**
   - **Depends on:** M0-01.
   - **Deliverable:** Whether the Game Master can close intake before all
     players submit, the confirmations required, and how non-submitters score.
@@ -370,7 +370,7 @@ table access cannot bypass application commands or projections.
     other rooms are denied; application routes use the authorized projection
     RPCs rather than generic service-role story reads.
 
-- [ ] **DB-12 — Create immutable duration and recommendation profiles**
+- [x] **DB-12 — Create immutable duration and recommendation profiles**
   - **Depends on:** DB-04.
   - **Deliverable:** Versioned duration/round profiles and balanced faction
     recommendations for representative 4–12-player configurations, with
@@ -379,7 +379,7 @@ table access cannot bypass application commands or projections.
     rooms retain deterministic pacing and recommendations after later versions
     are added.
 
-- [ ] **DB-13 — Create the immutable scoring profile**
+- [x] **DB-13 — Create the immutable scoring profile**
   - **Depends on:** DB-04, M0-04.
   - **Deliverable:** Approved versioned point weights, early-deduction logic,
     fixed faction outcomes, ties, awards, and checksum.

@@ -177,7 +177,8 @@ values (
   'fa000000-0000-4000-8000-000000000001',
   'f1000000-0000-4000-8000-000000000001',
   'f5000000-0000-4000-8000-000000000001',
-  'score-v1', decode(repeat('13', 32), 'hex'),
+  'score-v1', (select checksum from app_private.scoring_profiles
+    where profile_version = 'score-v1'),
   decode(repeat('11', 32), 'hex'), decode(repeat('12', 32), 'hex'),
   decode(repeat('14', 32), 'hex'), 10, 4,
   '{"submittedAccusations":1,"submittedTheories":1}'::jsonb
@@ -198,7 +199,9 @@ select is(
     ) values (
       'f1000000-0000-4000-8000-000000000001',
       'f5000000-0000-4000-8000-000000000001', 'wrong-profile',
-      decode(repeat('13',32),'hex'), decode(repeat('11',32),'hex'),
+      (select checksum from app_private.scoring_profiles
+        where profile_version = 'score-v1'),
+      decode(repeat('11',32),'hex'),
       decode(repeat('12',32),'hex'), decode(repeat('15',32),'hex'),
       10, 4, '{}'::jsonb
     )
@@ -246,7 +249,9 @@ select is(
     ) values (
       'f1000000-0000-4000-8000-000000000001',
       'f5000000-0000-4000-8000-000000000001', 'score-v1',
-      decode(repeat('13',32),'hex'), decode(repeat('11',32),'hex'),
+      (select checksum from app_private.scoring_profiles
+        where profile_version = 'score-v1'),
+      decode(repeat('11',32),'hex'),
       decode(repeat('12',32),'hex'), decode(repeat('15',32),'hex'),
       10, 4, '{}'::jsonb
     )
@@ -451,7 +456,9 @@ values (
   'f5000000-0000-4000-8000-000000000001',
   'fa000000-0000-4000-8000-000000000001',
   'f7000000-0000-4000-8000-000000000001', 10, 'score-v1',
-  decode(repeat('13',32),'hex'), decode(repeat('11',32),'hex'),
+  (select checksum from app_private.scoring_profiles
+    where profile_version = 'score-v1'),
+  decode(repeat('11',32),'hex'),
   decode(repeat('12',32),'hex'), decode(repeat('14',32),'hex'),
   decode(repeat('15',32),'hex'), '{"published":true}'::jsonb
 );
@@ -503,7 +510,9 @@ values (
   'f5000000-0000-4000-8000-000000000001',
   'fa000000-0000-4000-8000-000000000001',
   'ff000000-0000-4000-8000-000000000001',
-  'case-file-v1', 'score-v1', decode(repeat('13',32),'hex'),
+  'case-file-v1', 'score-v1',
+  (select checksum from app_private.scoring_profiles
+    where profile_version = 'score-v1'),
   decode(repeat('11',32),'hex'), decode(repeat('12',32),'hex'),
   decode(repeat('14',32),'hex'), decode(repeat('15',32),'hex'),
   decode(repeat('16',32),'hex'), '{"complete":true}'::jsonb
